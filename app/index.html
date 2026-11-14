@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- AI assistance: OpenAI Codex. See docs/SI-USAGE.md. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10171d">
+  <title>ASTRAVITAL | Crew health</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./dashboard.js"></script>
+</head>
+<body>
+  <header class="top"><div class="shell bar">
+    <a class="brand" href="./"><span aria-hidden="true">✦</span> ASTRAVITAL</a>
+    <span class="link-status"><i></i> Earth link unavailable <small>SIMULATED</small></span>
+  </div></header>
+  <main class="shell">
+    <div class="intro">
+      <div><p class="meta">CREW 03 <span>·</span> MARS HABITAT <span>·</span> SOL 142</p><h1>Crew health</h1></div>
+      <label class="scenario">Demo scenario <select id="scenario"></select></label>
+    </div>
+    <div class="notice"><strong>SIMULATED DATA</strong><span>Demonstration only. Statistical deviation, not a diagnosis.</span></div>
+    <div class="grid">
+      <section class="card reading" aria-labelledby="metric">
+        <div class="card-head"><h2 id="metric">Resting heart rate</h2><span id="status" class="status"></span></div>
+        <div class="pulse"><strong id="value"></strong> <span>bpm</span></div>
+        <dl class="facts"><div><dt>Personal baseline</dt><dd id="baseline"></dd></div><div><dt>Deviation</dt><dd id="deviation"></dd></div></dl>
+        <dl class="details" id="details"></dl>
+      </section>
+      <section class="card assessment" aria-labelledby="assess">
+        <h2 id="assess">Assessment</h2>
+        <p id="reason" class="reason"></p>
+        <p id="rule" class="rule"></p>
+        <div class="actions"><button type="button" id="repeat">Simulate repeat reading</button><button type="button" id="review" class="secondary">Record CMO review request</button></div>
+        <p class="hint" id="action-hint"></p>
+      </section>
+      <section class="card history" aria-labelledby="history-title">
+        <div class="card-head"><h2 id="history-title">Resting history</h2><span id="trend"></span></div>
+        <div id="chart"></div>
+        <p id="chart-caption" class="hint"></p>
+        <details><summary>View readings</summary><table><thead><tr><th scope="col">Acquired</th><th scope="col">Heart rate</th><th scope="col">Data</th></tr></thead><tbody id="history-table"></tbody></table></details>
+      </section>
+      <section class="card log" aria-labelledby="log-title">
+        <h2 id="log-title">Local review log</h2>
+        <p class="hint">Earth unavailable. CMO review onboard.</p>
+        <p class="hint" id="empty-log">No review activity in this scenario.</p>
+        <ul id="log"></ul>
+        <button type="button" id="resolve" class="secondary" hidden>Close simulated review</button>
+      </section>
+    </div>
+    <div class="file-tools">
+      <button type="button" class="secondary" id="export">Export demo records</button>
+      <button type="button" class="secondary" id="choose-import">Import demo records</button><input type="file" id="import" accept=".json,application/json" aria-label="Import demo records" hidden>
+      <button type="button" class="secondary" id="keep-storage">Request persistent storage</button>
+    </div>
+    <footer><span id="offline" role="status">Preparing offline access</span><span id="storage" role="status">Opening local storage</span></footer>
+    <div id="announcement" class="sr-only" role="status"></div>
+  </main>
+</body>
+</html>
