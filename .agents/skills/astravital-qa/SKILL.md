@@ -1,70 +1,77 @@
 ---
 name: astravital-qa
-description: Tests and evaluation for ASTRAVITAL - unit tests for the baseline/Z-Score engine, seeded simulated sensor data with injected anomalies, false-alarm and missed-alert metrics, 7/14/28-day window comparison, missing data, baseline drift, sensor faults, and Moon/Mars Earth-link delay and blackout tests. Use for pruebas, tests, falsas alarmas, datos simulados, validation.
+description: Tests and evaluation for ASTRAVITAL - unit tests for the baseline/Z-Score engine, seeded simulated sensor data with injected anomalies, false-alarm and missed-alert metrics, 7/14/28-day window comparison, missing, stale and suspect data, device faults, baseline drift, and Moon/Mars Earth-link delay and blackout tests. Use for pruebas, tests, falsas alarmas, datos simulados, validation.
 ---
 
 # Pruebas y evaluación de ASTRAVITAL
 
-Objetivo: demostrar con datos reproducibles qué hace bien el sistema y dónde falla. Todo resultado de esta skill es [SIMULACIÓN] salvo que use datos reales con permiso.
+Objetivo: demostrar con datos reproducibles qué hace bien el sistema y dónde falla. Todo resultado de esta skill es [SIMULACIÓN] salvo que use datos reales con permiso. Requisitos que se prueban: `docs/REQUISITOS-MVP.md`.
 
 ## Reglas
 
 - Tests sin red y deterministas: generador pseudoaleatorio con semilla fija.
 - Para el motor, prefiere `node:test` (viene con Node y no requiere instalar nada). Usa otro framework solo si el proyecto ya lo tiene.
-- Cada dataset simulado se documenta en `data/README.md`: semilla, supuestos, rangos y qué no representa.
+- Cada dataset simulado se documenta en `data/README.md`: semilla, rangos, supuestos, muestreo y qué no representa. La "verdad" de los eventos sale del generador, no de un diagnóstico.
 - Un umbral clínico sin fuente es [HIPÓTESIS]. Los tests verifican el comportamiento del software, no la medicina.
+- Registra cada resultado en `docs/RESULTADOS.md` con comando, semilla, versión y resultado. Solo así se puede etiquetar `[RESULTADO COMPROBADO]`.
 
 ## 1. Tests unitarios del motor (mínimo)
 
 | # | Caso | Resultado esperado |
 |---|---|---|
-| 1 | La línea base usa los N días anteriores y **excluye** el día evaluado | media y desviación correctas |
-| 2 | Menos días válidos que el mínimo (arranque) | estado `insufficient-baseline`, nunca alerta |
-| 3 | Desviación típica 0 | sin Z-Score, con estado explícito |
-| 4 | Valores faltantes | se omiten y se cuentan; estado `missing` ese día |
-| 5 | Valor fuera del rango físico plausible | `sensor-fault`, excluido de la línea base, no es alerta de salud |
-| 6 | Umbrales de Z | verde / amarillo / rojo según configuración; indicadores con dirección (por ejemplo, sueño solo cuando baja) |
-| 7 | Límites de la ventana | exactamente N días; el día N+1 sale de la ventana |
-| 8 | Unidad diaria | días o soles según el perfil, con la misma lógica |
+| 1 | La línea base usa las N mediciones anteriores del **mismo contexto** y excluye la evaluada | Media y desviación correctas; la FC en actividad no entra en la línea base de reposo |
+| 2 | Pocas mediciones válidas en la ventana | `insufficient-history`, nunca alerta |
+| 3 | Desviación típica 0 | Sin Z-Score, con estado explícito |
+| 4 | No hay medición en el intervalo esperado | `missing` |
+| 5 | Medición más antigua que la edad máxima | `stale` |
+| 6 | Valor físicamente imposible o señal plana | `suspect` (lectura sospechosa). No se infiere un fallo físico solo por eso |
+| 7 | El dispositivo informa error o desconexión | `device-fault`, distinto de `suspect` |
+| 8 | Umbrales de Z | `ok / watch / alert` según la configuración, incluidos los valores límite |
+| 9 | Alerta abierta | Sus mediciones no actualizan la línea base hasta la revisión |
+| 10 | Límites de la ventana | Exactamente N días o soles; el N+1 sale de la ventana |
+| 11 | Tendencia | Dirección y pendiente correctas; ningún texto de pronóstico ni cuenta atrás |
 
 ## 2. Escenarios simulados con verdad conocida
 
 | Id | Escenario | Qué mide |
 |---|---|---|
-| S1 | Normal, 60 días, sin eventos | tasa de falsas alarmas |
-| S2 | Deriva gradual (por ejemplo, sueño −1,5 h en 10 días) | tiempo hasta detectarla y si la ventana la "absorbe" |
-| S3 | Evento agudo de 1 día (por ejemplo, FC en reposo +20 lpm) | sensibilidad |
-| S4 | Fallo de sensor (temperatura 0 °C o lectura congelada) | que salga como fallo, no como alerta |
-| S5 | 3 días seguidos sin datos | estado y recuperación |
-| S6 | Marte: enlace con la Tierra caído 14 días | las alertas locales siguen; el outbox se vacía al volver, en orden y sin duplicados |
+| S1 | Normal, 60 días, sin eventos | Tasa de falsas alarmas |
+| S2 | Deriva gradual (por ejemplo, FC en reposo +1,5 /min por día durante 10 días) | Tiempo hasta detectarla y que la alerta no desaparezca por absorción |
+| S3 | Evento agudo de 1 día (por ejemplo, FC en reposo +20 /min) | Sensibilidad |
+| S4 | Lectura sospechosa (señal plana) y, aparte, fallo informado por el dispositivo | Dos estados distintos; ninguno genera alerta de salud |
+| S5 | 3 días seguidos sin datos | `missing`, luego `stale`, y la recuperación |
+| S6 | Marte: enlace con la Tierra caído 14 días | La revisión a bordo sigue funcionando; la cola se vacía al volver, en orden y sin duplicados |
 
 Los valores de los escenarios son supuestos de simulación, no datos fisiológicos reales.
 
 ## 3. Métricas (tabla en el README)
 
 - Falsas alarmas por tripulante-día (S1).
-- Sensibilidad en eventos inyectados (S2, S3).
+- Eventos no señalados y sensibilidad en eventos inyectados (S2, S3).
 - Tiempo hasta detectar la deriva (S2).
-- Carga de alertas: alertas por día y proporción de rojas.
-- Comparación de ventanas de 7, 14 y 28 días con las mismas métricas: es la evaluación de la hipótesis de 14 días.
+- Carga de interrupciones: alertas y revisiones por día.
+- Comparación de ventanas de 7, 14 y 28 días con los mismos escenarios: es la evaluación de la hipótesis de 14 días.
+- Si alguien añade un pronóstico: definir variable, horizonte e incertidumbre y medir su error. Sin eso, solo tendencia descriptiva.
 
 Añade siempre un párrafo de limitaciones: datos simulados, sin validación clínica, umbrales configurables.
 
-## 4. Enlace con la Tierra
+## 4. Enlace con la Tierra (opcional en el MVP)
 
 - `moon`: entregas con retardo ≈ 1,3 s.
 - `mars`: retardo configurable (por ejemplo, 20 min) con reloj falso, y blackout de 14 días.
-- Outbox persistente tras recargar, prioridad rojo > amarillo > resumen, ids idempotentes.
+- Cola persistente tras recargar, prioridad por gravedad e ids idempotentes.
 - Detalle de perfiles y fuentes: `astravital-offline`.
 
 ## 5. Aceptación de la interfaz
 
-- El estado no depende solo del color: lleva texto e icono (accesibilidad).
-- Cada alerta dice: indicador, cuánto se desvía de **su** normal, posible relación con un peligro del HRP (con fuente), acción sugerida y "Consult flight surgeons when the Earth link is available" en las rojas.
-- Los estados `missing`, `sensor-fault` e `insufficient-baseline` son visibles y distintos.
+- El estado no depende solo del color: lleva texto e icono.
+- Cada desviación muestra indicador, distancia a **su** normalidad (media ± desviación, n), contexto, calidad, regla y versión, y "statistical deviation, not a diagnosis".
+- Solo pasos de procedimiento: volver a medir o pedir revisión al CMO. Ningún diagnóstico ni tratamiento.
+- Con la Tierra caída: *"Earth unavailable — CMO review onboard"*.
+- Los cinco estados de dato son visibles y distintos.
 
 ## Definición de hecho
 
 - [ ] `node --test` (o el comando del proyecto) pasa sin red.
 - [ ] S1–S6 se reproducen con la semilla documentada.
-- [ ] La tabla de métricas y las limitaciones están en el README.
+- [ ] La tabla de métricas y las limitaciones están en el README y en `docs/RESULTADOS.md`.

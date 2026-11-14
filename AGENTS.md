@@ -39,6 +39,10 @@ ASTRAVITAL debe funcionar en una **estación lunar y en una base en Marte sin co
 
 Competimos en el reto oficial **"Create Health Monitoring Software for Astronauts on Space Missions"**. La entrega cierra el **domingo 15 de noviembre de 2026 a las 23:59** (hora del Local Event). Todo lo que vaya a la entrega se escribe en inglés. Hay que declarar el código y las imágenes generados con IA.
 
+## Concepto del sistema
+
+Antes de diseñar funciones o la interfaz, lee `docs/CONCEPTO-SISTEMA.md` (actores, sensores existentes y propuestos, arquitectura del "mini sistema operativo", niveles de escalado y qué se presenta como funcional, esquemático o visión futura) y `docs/REQUISITOS-MVP.md` (requisitos con criterio de aceptación, boceto del dashboard y decisiones abiertas). El MVP funcional es el **dashboard del astronauta** con dos indicadores físicos; el resto se presenta como esquema.
+
 ## Enrutador de skills (carga solo la que toque)
 
 | Fase o tarea | Skill (Claude `/nombre` · Codex `$nombre`) |
@@ -56,8 +60,8 @@ No cargues todas a la vez: cada skill indica cuándo leer sus referencias.
 
 ## Resolución de skills en este entorno
 
-- Caveman está instalado para Codex en `/Users/granitespinozasalazar/.agents/skills/caveman/SKILL.md` y para Claude en `/Users/granitespinozasalazar/.claude/skills/caveman/SKILL.md`.
-- La capacidad de innovación instalada es `ce-ideate`: `/Users/granitespinozasalazar/.agents/skills/ce-ideate/SKILL.md` para Codex y `/Users/granitespinozasalazar/.claude/skills/ce-ideate/SKILL.md` para Claude. No afirmar que existe una skill instalada con el nombre literal `innovation`.
+- Caveman está instalado para Codex en `~/.agents/skills/caveman/SKILL.md` y para Claude en `~/.claude/skills/caveman/SKILL.md`.
+- La capacidad de innovación instalada es `ce-ideate`: `~/.agents/skills/ce-ideate/SKILL.md` para Codex y `~/.claude/skills/ce-ideate/SKILL.md` para Claude. No afirmar que existe una skill instalada con el nombre literal `innovation`.
 - Si una skill no aparece en el catálogo de la conversación, comprobar su archivo y leerlo por su ruta antes de concluir que falta. Leer las referencias requeridas cuando se use.
 - No usar la posibilidad de escribir en `~/.codex/skills` como prueba de que faltan las skills de `~/.agents/skills`.
 - Canva está registrado en la configuración local de Codex. Su disponibilidad en una conversación depende de que el cliente exponga sus herramientas. La presencia de la URL no verifica la autenticación ni una conexión activa.
