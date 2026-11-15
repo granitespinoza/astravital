@@ -22,3 +22,6 @@
 .visual[data-intro=done] .visor-caption{animation-delay:.5s}
 .intro-replay{position:absolute;z-index:8;top:62px;left:25px;background:#080c0ed9;font-size:.55rem;min-height:30px;padding:0 12px;color:#c8d9d4;border:1px solid #455552;border-radius:999px}
 .body-label{top:100px}
+/* AI assistance: Anthropic Claude. Web demo (no server): notice and hide server-only links. */
+.web-demo-note{margin:0 0 14px;padding:10px 14px;border:1px solid #455552;border-radius:10px;font-size:.62rem;color:#c8d9d4;background:#080c0ed9}
+body[data-web-demo=true] a[href="/api/reviews"],body[data-web-demo=true] a[href="/health"]{display:none}

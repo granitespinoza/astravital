@@ -1,6 +1,7 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 // A bounded local dialogue policy grounded in SQLite snapshots, not a free-form LLM.
-import {randomUUID} from 'node:crypto';
+// Web Crypto keeps this exact dialogue policy runnable both in Node and in the browser web demo.
+const randomUUID = () => globalThis.crypto.randomUUID();
 const fold = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim().replace(/^astra(?:\s+|[,!:]\s*)/,'');
 const confirms = new Set(['confirmar','confirmo','confirmo guardar','confirmar guardado','si confirmo','si, confirmo','confirm','confirm save','confirm review','yes confirm','yes, confirm']);
 const signed = value => (value > 0 ? '+' : '') + value.toFixed(2);
