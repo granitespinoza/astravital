@@ -69,13 +69,16 @@ try {
     if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text);
     if (m.method === 'Network.requestWillBeSent') requests.add(m.params.request.url);
     // The CMO confirms an acknowledgement in a native dialog; accept it like the operator would.
-    if (m.method === 'Page.javascriptDialogOpening') void call('Page.handleJavaScriptDialog', {accept:true}, session);
+    if (m.method === 'Page.javascriptDialogOpening') call('Page.handleJavaScriptDialog', {accept:true}, session).catch(() => {});
   };
   const call = (method, params = {}, sessionId) => new Promise((ok, fail) => { const id = ++seq; pending.set(id, {ok, fail}); socket.send(JSON.stringify({id, method, params, sessionId})); });
   const {targetId} = await call('Target.createTarget', {url:'about:blank'});
   ({sessionId:session} = await call('Target.attachToTarget', {targetId, flatten:true}));
   const page = (method, params) => call(method, params, session);
   await page('Runtime.enable'); await page('Network.enable'); await page('Page.enable');
+  // Emulate a slow CI runner to expose timing races locally: E2E_LATENCY_MS=400, E2E_CPU_THROTTLE=6.
+  if (process.env.E2E_CPU_THROTTLE) await page('Emulation.setCPUThrottlingRate', {rate:Number(process.env.E2E_CPU_THROTTLE)});
+  if (process.env.E2E_LATENCY_MS) await page('Network.emulateNetworkConditions', {offline:false, latency:Number(process.env.E2E_LATENCY_MS), downloadThroughput:-1, uploadThroughput:-1});
   const js = async expression => { const r = await page('Runtime.evaluate', {expression, returnByValue:true, awaitPromise:true}); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const check = (name, ok, detail = '') => { console.log(`${ok ? 'ok' : 'FAIL'} - ${name}${detail ? ' — ' + detail : ''}`); if (!ok) failures.push(name); };
   // A fresh document each time, so hash-selected views (crew link, #ground) start cleanly.
@@ -85,22 +88,41 @@ try {
     await untilPage(() => js(`location.href === ${JSON.stringify(url)} && document.readyState !== 'loading'`), 'navigation to ' + url);
   };
   const text = id => js(`document.getElementById('${id}')?.innerText ?? ''`);
+  // Click like a person: only once the control is visible and enabled (the page disables controls while it works).
+  const click = async id => {
+    await untilPage(() => js(`(() => { const el = document.getElementById('${id}'); return Boolean(el && !el.disabled && el.getClientRects().length); })()`), id + ' enabled');
+    await js(`document.getElementById('${id}').click(); true`);
+  };
+  // The console refuses an action while it refreshes ("The console is updating. Try again.").
+  // Repeat the action only after that refusal, so a real request is never sent twice.
+  const act = async (trigger, done, what, ms = 20000) => {
+    const clear = () => js(`document.getElementById('action-result').textContent = ''; true`);
+    await clear(); await js(trigger);
+    const end = Date.now() + ms;
+    while (Date.now() < end) {
+      if (await done().catch(() => false)) return;
+      if ((await text('action-result')).includes('Try again')) { await delay(300); await clear(); await js(trigger); }
+      await delay(150);
+    }
+    throw new Error('Timed out waiting for ' + what);
+  };
 
   // 1. Glasses with the real API and SQLite.
   await go(base + '/');
   await untilPage(() => js(`document.getElementById('api-status')?.textContent === 'LOCAL SYSTEM READY'`), 'local system ready');
   check('glasses connect to the local server and database', true);
   check('glasses offer the onboard mission console', await js(`!document.getElementById('mission-entry').hidden`));
-  await js(`document.getElementById('enter-lenses').click(); true`);
+  await click('enter-lenses');
   await untilPage(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens transition', 8000);
+  await untilPage(() => js(`!document.getElementById('message').disabled && !document.querySelector('#message-form button').disabled`), 'message box enabled');
   await js(`document.getElementById('message').value='How is my pulse?'; document.getElementById('message-form').requestSubmit(); true`);
   await untilPage(async () => (await text('conversation')).includes('heart reading'), 'server answer');
   check('Astra answers from the local server', true, (await text('conversation')).replace(/\s+/g, ' ').slice(0, 120));
-  await js(`document.getElementById('next-action').click(); true`);
+  await click('next-action');
   await untilPage(async () => (await text('conversation')).includes('Check repeated'), 'repeat');
-  await js(`document.getElementById('next-action').click(); true`);
+  await click('next-action');
   await untilPage(() => js(`!document.getElementById('confirmation').hidden`), 'confirmation');
-  await js(`document.getElementById('confirm-review').click(); true`);
+  await click('confirm-review');
   await untilPage(() => js(`document.getElementById('next-action').textContent === 'Review saved'`), 'saved');
   const reviews = await (await fetch(base + '/api/reviews')).json();
   check('confirmed review is stored once in SQLite', Array.isArray(reviews) && reviews.length === 1, `${reviews.length} review(s)`);
@@ -123,18 +145,19 @@ try {
   await untilPage(async () => (await text('connection')) === 'Connected to the mission laptop' && /Alex Morgan[\s\S]*ALERT/.test(await text('roster')), 'CMO roster');
   check('CMO sees Alex Morgan in ALERT', true);
   check('CMO sees the review saved from the glasses', (await text('review-count')).startsWith('1 review'));
-  await js(`[...document.querySelectorAll('#roster button')].find(b => b.textContent === 'Acknowledge reading').click(); true`);
-  await untilPage(async () => (await text('roster')).includes('CMO acknowledged this sample.'), 'CMO acknowledgement');
+  await act(`[...document.querySelectorAll('#roster button')].find(b => b.textContent === 'Acknowledge reading')?.click(); true`,
+    async () => (await text('roster')).includes('CMO acknowledged this sample.'), 'CMO acknowledgement');
   check('CMO acknowledgement is saved', true);
 
   // 4. Report queued onboard, simulated Earth receipt, Earth doctor review.
   await go(base + '/mission.html#ground');
-  await untilPage(() => js(`!document.getElementById('ground-panel').hidden && !document.getElementById('report-form').hidden`), 'Ground panel');
-  await js(`document.getElementById('report-kind').value='daily'; document.getElementById('report-form').requestSubmit(); true`);
-  await untilPage(async () => (await text('reports')).includes('QUEUED'), 'queued report');
+  await untilPage(async () => !(await js(`document.getElementById('ground-panel').hidden || document.getElementById('report-form').hidden`))
+    && (await text('connection')) === 'Connected to the mission laptop', 'Ground panel');
+  await act(`document.getElementById('report-kind').value='daily'; document.getElementById('report-form').requestSubmit(); true`,
+    async () => (await text('reports')).includes('QUEUED'), 'queued report');
   check('report waits in the simulated Earth link queue', !(await text('ground-heart')).match(/\d+\s*bpm/));
-  await js(`[...document.querySelectorAll('#reports button')].find(b => b.textContent === 'Simulate Earth receipt').click(); true`);
-  await untilPage(async () => /Confirmed ALERT/.test(await text('ground-inbox')), 'received report');
+  await act(`[...document.querySelectorAll('#reports button')].find(b => b.textContent === 'Simulate Earth receipt')?.click(); true`,
+    async () => /Confirmed ALERT/.test(await text('ground-inbox')), 'received report');
   check('Earth doctor inbox puts the confirmed ALERT first', (await js(`document.querySelector('#ground-inbox li')?.innerText ?? ''`)).includes('Confirmed ALERT'));
   await js(`const s=document.getElementById('ground-member'); s.value='crew-03'; s.dispatchEvent(new Event('change',{bubbles:true})); true`);
   await untilPage(async () => /\d+\s*bpm/.test(await text('ground-heart')), 'Alex heart panel');
