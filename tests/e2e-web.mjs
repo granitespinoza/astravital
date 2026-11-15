@@ -32,6 +32,15 @@ async function until(read, what, ms = 15000) {
   throw new Error('Timed out waiting for ' + what);
 }
 
+// Page checks: a document that is still loading can throw (element not parsed yet, context replaced),
+// so keep polling and report the last page error only if the wait times out.
+async function untilPage(read, what, ms = 15000) {
+  let last;
+  try {
+    return await until(async () => { try { return await read(); } catch (error) { last = error; return false; } }, what, ms);
+  } catch (error) { throw new Error(error.message + (last ? ` (last page error: ${last.message})` : '')); }
+}
+
 // Match the Pages project subpath and provide no API, so both views must use the web demo.
 const projectPath = '/astravital/';
 function staticServer() {
@@ -91,31 +100,31 @@ try {
   const astra = () => js(`document.querySelector('#conversation .bubble span')?.textContent ?? ''`);
 
   await page('Page.navigate', {url});
-  await until(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'web demo status');
+  await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'web demo status');
   check('page loads in web demo mode', true);
   check('voice button explains it runs in the local app', await js(`document.getElementById('mic-button').disabled && document.getElementById('mic-button').textContent.includes('local app')`));
   check('intro is ready', await js(`document.querySelector('.visual').dataset.intro === 'ready'`));
 
   await js(`document.getElementById('enter-lenses').click()`);
-  await until(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens transition', 8000);
+  await untilPage(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens transition', 8000);
   check('lens transition reaches the wearer view', true);
 
   await js(`document.getElementById('message').value='How is my pulse?'; document.getElementById('message-form').requestSubmit(); true`);
-  await until(async () => (await astra()).includes('heart reading'), 'pulse answer');
+  await untilPage(async () => (await astra()).includes('heart reading'), 'pulse answer');
   check('typed "How is my pulse?" gets a heart answer', true, await astra());
 
   await js(`document.getElementById('next-action').click(); true`);
-  await until(async () => (await astra()).includes('Check repeated'), 'repeat answer');
+  await untilPage(async () => (await astra()).includes('Check repeated'), 'repeat answer');
   check('Check again repeats with the original reference', await js(`document.getElementById('state-copy').textContent.includes('original reference')`));
   await js(`document.getElementById('next-action').click(); true`);
-  await until(() => js(`!document.getElementById('confirmation').hidden`), 'confirmation');
+  await untilPage(() => js(`!document.getElementById('confirmation').hidden`), 'confirmation');
   check('Prepare review asks for a separate confirmation', true);
   await js(`document.getElementById('confirm-review').click(); true`);
-  await until(async () => (await astra()).startsWith('Saved'), 'saved answer');
+  await untilPage(async () => (await astra()).startsWith('Saved'), 'saved answer');
   check('Confirm save stores the review locally', await js(`document.getElementById('next-action').textContent === 'Review saved'`));
 
   await page('Page.reload');
-  await until(() => js(`document.getElementById('next-action')?.textContent === 'Review saved'`), 'persisted review after reload');
+  await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Review saved'`), 'persisted review after reload');
   check('saved review survives a reload', true);
 
   await js(`document.getElementById('show-body').click(); true`);
@@ -142,7 +151,7 @@ try {
   check('glasses link carries the repeated check',new URL(groundLink).searchParams.get('case') === 'repeat');
   await page('Emulation.setDeviceMetricsOverride', {width: 1440, height: 900, deviceScaleFactor: 1, mobile: false});
   await page('Page.navigate', {url:groundLink});
-  await until(() => js(`document.getElementById('connection')?.textContent.includes('WEB DEMO') &&
+  await untilPage(() => js(`document.getElementById('connection')?.textContent.includes('WEB DEMO') &&
     document.querySelector('#ground-history svg')`), 'Ground web demo with seeded history');
   check('Ground displays WEB DEMO and SIMULATED DATA', await js(`!document.getElementById('ground-panel').hidden &&
     document.body.innerText.includes('SIMULATED DATA') && document.body.innerText.includes('WEB DEMO')`));
@@ -164,12 +173,12 @@ try {
     .some(status => status.dataset.level === 'stable' && status.textContent.startsWith('✓ OK'))`));
   await js(`document.getElementById('ground-note').value = 'Training note from E2E';
     document.getElementById('ground-action-form').requestSubmit(); true`);
-  await until(() => js(`document.getElementById('ground-timeline').innerText.includes('Training note from E2E')`), 'Ground note saved');
+  await untilPage(() => js(`document.getElementById('ground-timeline').innerText.includes('Training note from E2E')`), 'Ground note saved');
   await page('Page.reload');
-  await until(() => js(`document.getElementById('ground-timeline')?.innerText.includes('Training note from E2E')`), 'Ground note after reload');
+  await untilPage(() => js(`document.getElementById('ground-timeline')?.innerText.includes('Training note from E2E')`), 'Ground note after reload');
   check('Ground note survives a reload', true);
   if (process.env.GROUND_SCREENSHOT_PATH) {
-    await until(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),
+    await untilPage(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),
       'Ground anatomy');
     await js(`document.fonts.ready.then(() => true)`);
     await delay(1500);
@@ -182,7 +191,7 @@ try {
   check('Ground displays the seeded bone scan', await js(`document.getElementById('ground-bone').getClientRects().length > 0 &&
     /g\\/cm[²2]/.test(document.getElementById('ground-bone').innerText) &&
     document.getElementById('ground-bone').innerText.includes('DXA')`));
-  await until(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),'Ground anatomy controls');
+  await untilPage(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),'Ground anatomy controls');
   if (await js(`Boolean(document.querySelector('#ground-scene canvas'))`)) {
     await js(`document.getElementById('ground-heart-button').click();
       document.getElementById('ground-zoom-in').click(); true`);

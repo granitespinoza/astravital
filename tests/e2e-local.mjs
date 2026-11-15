@@ -32,6 +32,15 @@ async function until(read, what, ms = 15000) {
   throw new Error('Timed out waiting for ' + what);
 }
 
+// Page checks: a document that is still loading can throw (element not parsed yet, context replaced),
+// so keep polling and report the last page error only if the wait times out.
+async function untilPage(read, what, ms = 15000) {
+  let last;
+  try {
+    return await until(async () => { try { return await read(); } catch (error) { last = error; return false; } }, what, ms);
+  } catch (error) { throw new Error(error.message + (last ? ` (last page error: ${last.message})` : '')); }
+}
+
 const work = await mkdtemp(join(await realpath(tmpdir()), 'astravital-e2e-local-'));
 const profile = join(work, 'chrome');
 let server, browser, socket;
@@ -70,25 +79,29 @@ try {
   const js = async expression => { const r = await page('Runtime.evaluate', {expression, returnByValue:true, awaitPromise:true}); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const check = (name, ok, detail = '') => { console.log(`${ok ? 'ok' : 'FAIL'} - ${name}${detail ? ' — ' + detail : ''}`); if (!ok) failures.push(name); };
   // A fresh document each time, so hash-selected views (crew link, #ground) start cleanly.
-  const go = async url => { await page('Page.navigate', {url:'about:blank'}); await page('Page.navigate', {url}); };
+  const go = async url => {
+    await page('Page.navigate', {url:'about:blank'});
+    await page('Page.navigate', {url});
+    await untilPage(() => js(`location.href === ${JSON.stringify(url)} && document.readyState !== 'loading'`), 'navigation to ' + url);
+  };
   const text = id => js(`document.getElementById('${id}')?.innerText ?? ''`);
 
   // 1. Glasses with the real API and SQLite.
   await go(base + '/');
-  await until(() => js(`document.getElementById('api-status')?.textContent === 'LOCAL SYSTEM READY'`), 'local system ready');
+  await untilPage(() => js(`document.getElementById('api-status')?.textContent === 'LOCAL SYSTEM READY'`), 'local system ready');
   check('glasses connect to the local server and database', true);
   check('glasses offer the onboard mission console', await js(`!document.getElementById('mission-entry').hidden`));
   await js(`document.getElementById('enter-lenses').click(); true`);
-  await until(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens transition', 8000);
+  await untilPage(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens transition', 8000);
   await js(`document.getElementById('message').value='How is my pulse?'; document.getElementById('message-form').requestSubmit(); true`);
-  await until(async () => (await text('conversation')).includes('heart reading'), 'server answer');
+  await untilPage(async () => (await text('conversation')).includes('heart reading'), 'server answer');
   check('Astra answers from the local server', true, (await text('conversation')).replace(/\s+/g, ' ').slice(0, 120));
   await js(`document.getElementById('next-action').click(); true`);
-  await until(async () => (await text('conversation')).includes('Check repeated'), 'repeat');
+  await untilPage(async () => (await text('conversation')).includes('Check repeated'), 'repeat');
   await js(`document.getElementById('next-action').click(); true`);
-  await until(() => js(`!document.getElementById('confirmation').hidden`), 'confirmation');
+  await untilPage(() => js(`!document.getElementById('confirmation').hidden`), 'confirmation');
   await js(`document.getElementById('confirm-review').click(); true`);
-  await until(() => js(`document.getElementById('next-action').textContent === 'Review saved'`), 'saved');
+  await untilPage(() => js(`document.getElementById('next-action').textContent === 'Review saved'`), 'saved');
   const reviews = await (await fetch(base + '/api/reviews')).json();
   check('confirmed review is stored once in SQLite', Array.isArray(reviews) && reviews.length === 1, `${reviews.length} review(s)`);
   check('glasses never show the experimental forecast to the crew', !(await js(`document.body.innerText.toLowerCase().includes('forecast')`)));
@@ -98,38 +111,38 @@ try {
   const alexLink = cmo.links.find(link => link.id === 'crew-03')?.url;
   check('CMO console issues a pairing link for each crew member', cmo.links.length === 4 && Boolean(alexLink));
   await go(alexLink);
-  await until(() => js(`!document.getElementById('send-sample').disabled`), 'crew client ready');
+  await untilPage(() => js(`!document.getElementById('send-sample').disabled`), 'crew client ready');
   for (const n of [1, 2]) {
     await js(`document.getElementById('profile').value='high'; document.getElementById('sample-form').requestSubmit(); true`);
-    await until(async () => (await text('crew-state')).includes('Simulated sol ' + n), `crew sample ${n} received`);
+    await untilPage(async () => (await text('crew-state')).includes('Simulated sol ' + n), `crew sample ${n} received`);
   }
   check('two strong deviations from the phone reach the station', /ALERT/.test(await text('crew-state')));
 
   // 3. CMO reviews and acknowledges onboard.
   await go(base + '/mission.html');
-  await until(async () => (await text('connection')) === 'Connected to the mission laptop' && /Alex Morgan[\s\S]*ALERT/.test(await text('roster')), 'CMO roster');
+  await untilPage(async () => (await text('connection')) === 'Connected to the mission laptop' && /Alex Morgan[\s\S]*ALERT/.test(await text('roster')), 'CMO roster');
   check('CMO sees Alex Morgan in ALERT', true);
   check('CMO sees the review saved from the glasses', (await text('review-count')).startsWith('1 review'));
   await js(`[...document.querySelectorAll('#roster button')].find(b => b.textContent === 'Acknowledge reading').click(); true`);
-  await until(async () => (await text('roster')).includes('CMO acknowledged this sample.'), 'CMO acknowledgement');
+  await untilPage(async () => (await text('roster')).includes('CMO acknowledged this sample.'), 'CMO acknowledgement');
   check('CMO acknowledgement is saved', true);
 
   // 4. Report queued onboard, simulated Earth receipt, Earth doctor review.
   await go(base + '/mission.html#ground');
-  await until(() => js(`!document.getElementById('ground-panel').hidden && !document.getElementById('report-form').hidden`), 'Ground panel');
+  await untilPage(() => js(`!document.getElementById('ground-panel').hidden && !document.getElementById('report-form').hidden`), 'Ground panel');
   await js(`document.getElementById('report-kind').value='daily'; document.getElementById('report-form').requestSubmit(); true`);
-  await until(async () => (await text('reports')).includes('QUEUED'), 'queued report');
+  await untilPage(async () => (await text('reports')).includes('QUEUED'), 'queued report');
   check('report waits in the simulated Earth link queue', !(await text('ground-heart')).match(/\d+\s*bpm/));
   await js(`[...document.querySelectorAll('#reports button')].find(b => b.textContent === 'Simulate Earth receipt').click(); true`);
-  await until(async () => /Confirmed ALERT/.test(await text('ground-inbox')), 'received report');
+  await untilPage(async () => /Confirmed ALERT/.test(await text('ground-inbox')), 'received report');
   check('Earth doctor inbox puts the confirmed ALERT first', (await js(`document.querySelector('#ground-inbox li')?.innerText ?? ''`)).includes('Confirmed ALERT'));
   await js(`const s=document.getElementById('ground-member'); s.value='crew-03'; s.dispatchEvent(new Event('change',{bubbles:true})); true`);
-  await until(async () => /\d+\s*bpm/.test(await text('ground-heart')), 'Alex heart panel');
+  await untilPage(async () => /\d+\s*bpm/.test(await text('ground-heart')), 'Alex heart panel');
   const heart = await text('ground-heart');
   check('Earth doctor sees the phone reading with the personal reference', /Personal reference\s*\d/.test(heart) && /Deviation persisted on repeat\s*Yes/.test(heart));
   check('Earth doctor sees the experimental forecast with an interval', heart.includes('Trend forecast · experimental') && /Sol \+1\s*[\d.]+ bpm \(80%/.test(heart) && heart.includes('flight surgeon only'));
   await js(`document.getElementById('ground-note').value='Local E2E note'; document.getElementById('ground-action-form').requestSubmit(); true`);
-  await until(async () => (await text('ground-timeline')).includes('Local E2E note'), 'Ground note');
+  await untilPage(async () => (await text('ground-timeline')).includes('Local E2E note'), 'Ground note');
   check('Earth doctor note is saved in SQLite', (await (await fetch(base + '/api/mission/ground')).json()).crew
     .find(member => member.crewId === 'crew-03').timeline.some(event => event.note === 'Local E2E note'));
 
