@@ -59,6 +59,8 @@ export function respond(db, {text = '', sessionId, scenario, boneScenario} = {})
   }
   if (/^(silencio|silenciar|mute|mute audio|apaga el audio|no quiero audio)$/.test(message)) { context.muted=true;return finish('mute',"Audio muted. Text and controls remain available."); }
   if (/^(activar audio|activa el audio|unmute|unmute audio)$/.test(message)) { context.muted=false;return finish('unmute',"Audio enabled by your choice."); }
+  // AI assistance: Anthropic Claude. Possible emergencies are referred to the onboard medical officer at once.
+  if (/\b(heart attack|infarto|ataque (?:al )?corazon|chest pain|dolor (?:de |en el )?pecho|can'?t breathe|cannot breathe|no puedo respirar|faint\w*|desmay\w*|palpitations?|palpitacion\w*)\b/.test(message)) return finish('acknowledge', 'I can’t tell whether this is a heart attack or any other condition. If you have symptoms, tell your onboard medical officer now. I can show your readings, but they can’t identify the cause.');
   if (/\b(earth|tierra|ground control|doctors on earth)\b/.test(message)) return finish('status', 'Earth is unavailable in this simulation. I haven’t contacted anyone. I can help you prepare a local onboard review instead.');
   if (/^(hello|hi|hey|hola|good morning)(?:[,! ]+astra)?[!.?]*$/.test(message)) return finish('greeting', 'Hi, I’m Astra. I can help you understand your heart and bone readings. What would you like to check?');
   if (/^(thanks|thank you|thank you astra|gracias|muchas gracias)[!.?]*$/.test(message)) return finish('acknowledge', 'You’re welcome. I’m here when you want to check a reading or take the next step.');
@@ -89,7 +91,7 @@ export function respond(db, {text = '', sessionId, scenario, boneScenario} = {})
     try { const result=db.repeatReading({scenario:state.scenario});state=result.state;return finish('repeat-complete',"Check repeated using the original reference. " + describe(state)); }
     catch(error) { return finish('repeat-unavailable',"I can’t repeat this reading. Check the source or history; I won’t replace missing measurements with an invented health result."); }
   }
-  if (/\b(osteoporosis|porosidad|fractura|fracture|porosity|diagnostico|diagnose|tratamiento|treatment)\b/.test(message)) return finish('explain',"These synthetic measurements cannot diagnose osteoporosis, porosity or fractures, or prescribe treatment. I can explain what the measurements support.");
+  if (/\b(diagnos\w*|disease|enfermedad|illness|sick|enfermo|(?:a|any|heart|bone|medical|cardiac) condition|osteoporosis|porosidad|porosity|fractur\w*|arrhythmia|arritmia|treat|treatment|tratamiento|tratar|medication\w*|medicine\w*|medicamento\w*|pills?|pastillas?|drugs?|dose|dosis|prescri\w*|receta)\b/.test(message)) return finish('decline',"These synthetic measurements cannot diagnose a condition or recommend treatment or medication. They only show how a reading compares with your usual range. Your onboard medical officer decides on care; I can show the readings or prepare a review.");
   if (/\b(por que|porque|explica\w*|why|explain|razon|causa|show medical details|medical details|detalles medicos)\b/.test(message)) return finish('explain',describe(state,'explain'));
   if (/\b(compara\w*|compare|cambio|diferencia|antes|tendencia)\b/.test(message)) return finish('compare',describe(state,'compare'));
   if (/\b(actual|ahora|current|latest|ultimo|valor)\b/.test(message)) return finish('status',describe(state,'current'));

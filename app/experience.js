@@ -10,7 +10,7 @@ const states={};
 const scene=createScene($('scene'),{onDomain:next=>setDomain(next),onEnter:()=>enterLenses()});
 // AI assistance: Anthropic Claude. Without a local server (for example on GitHub Pages), the same dialogue policy runs in the browser.
 let webDemo=null;
-async function connect(){try{const r=await fetch('/health',{cache:'no-store'});if(r.ok&&(r.headers.get('content-type')??'').includes('json'))return;}catch{}webDemo=await import('./web-demo.bundle.js?v=13');document.body.dataset.webDemo='true';$('web-demo-note').hidden=false;}
+async function connect(){try{const r=await fetch('/health',{cache:'no-store'});if(r.ok&&(r.headers.get('content-type')??'').includes('json'))return;}catch{}webDemo=await import('./web-demo.bundle.js?v=16');document.body.dataset.webDemo='true';$('web-demo-note').hidden=false;}
 async function api(path,options={}){if(webDemo){try{return await webDemo.request(path,options);}catch(error){throw new Error(error.message);}}const response=await fetch(path,options);const value=await response.json();if(!response.ok)throw new Error(value.error??'The local service is unavailable. Try again.');return value;}
 function indicator(s){if(!s||s.quality!=='ok')return{level:'unknown',label:'No recent data'};if(s.domain==='bone'){if(!s.decision.comparable||s.decision.significance==='not-established')return{level:'unknown',label:'More data needed'};return s.decision.significance==='exceeds-measurement-lsc'?{level:'check',label:'Worth a review'}:{level:'stable',label:'Within reference'};}return s.decision.level==='alert'?{level:'review',label:'Review change'}:s.decision.level==='watch'?{level:'check',label:'Check again'}:{level:'stable',label:'Within reference'};}
 function brief(s){const i=indicator(s);if(i.level==='unknown')return'I need usable measurements before I can summarize this check.';if(s.domain==='bone')return i.level==='stable'?'Your latest bone measurement is within the demo comparison range.':'Your latest bone check shows a change worth reviewing. We can prepare the details together.';return i.level==='stable'?'Your heart-rate check is within your demo reference. I’m here if you want a closer look.':s.performed?'The change is still present in the repeat check. I can prepare it for onboard review.':'Your heart rate is different from your usual resting pattern. Let’s check it again.';}
@@ -23,7 +23,8 @@ function updateSharedCaseLink() {
   const query = new URLSearchParams();
   if (heart.performed) query.set('case','repeat');
   if (domain === 'bone') query.set('domain','bone');
-  $('earth-doctor-link').href = './mission.html' + (query.size ? '?' + query : '') + '#ground';
+  const search = query.toString(); // URLSearchParams.size is missing in Safari 16
+  $('earth-doctor-link').href = './mission.html' + (search ? '?' + search : '') + '#ground';
   const label = $('shared-case-label');
   label.textContent = 'Alex Morgan · ' + (heart.performed ? 'repeat' : 'initial') + ' resting check · ' + heart.reading.value + ' bpm';
   label.hidden = false;
@@ -69,3 +70,5 @@ function resetIntro(){if(entering)return;showMode('glasses');scene.setMode('intr
 $('enter-lenses').addEventListener('click',enterLenses);
 $('skip-intro').addEventListener('click',()=>{scene.setMode('focus');});
 $('replay-intro').addEventListener('click',resetIntro);
+// AI assistance: Anthropic Claude. Judges may return weeks later: put the web demo back to its first state.
+$('reset-demo').addEventListener('click',()=>{webDemo?.resetWebDemo();for(const key of ['astravital-ground-actions-v1','astra-session']){try{localStorage.removeItem(key);}catch{}}location.reload();});

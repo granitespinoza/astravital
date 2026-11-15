@@ -26,4 +26,6 @@
 .web-demo-note{margin:0 0 14px;padding:10px 14px;border:1px solid #455552;border-radius:10px;font-size:.62rem;color:#c8d9d4;background:#080c0ed9}
 #shared-case{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem 1rem;font-size:.83rem}
 #earth-doctor-link{color:var(--cyan);padding-block:.4rem}
+.reset-demo{margin-left:.5rem;min-height:28px;padding:.1rem .7rem;border:1px solid #455552;border-radius:999px;background:transparent;color:var(--cyan);font:inherit;font-size:.62rem;cursor:pointer}
+.reset-demo:hover{border-color:var(--cyan)}
 body[data-web-demo=true] a[href="/api/reviews"],body[data-web-demo=true] a[href="/health"]{display:none}

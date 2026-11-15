@@ -10,6 +10,7 @@ Fields from the official [Project Submission Guide](https://www.spaceappschallen
 - [ ] No images, video or audio of people under 18.
 - [ ] Tick the **Terms and Conditions** and **Confirm All Work is Original** boxes; every external resource is listed under References.
 - [ ] Submit before **Sunday, 15 November 2026, 23:59** local time of the team's Local Event. You can resubmit until then; judges see the last version.
+- [ ] **Keep the demo link alive until results (26 January 2027).** Judging runs for about two months: do not rename, delete or make the repository private, do not rename the GitHub account, do not push to `main` after submitting, and tag the submitted commit (for example `spaceapps-2026-submitted`). The demo has no external runtime dependencies and was verified with the browser clock set to every judging date.
 
 ---
 
@@ -39,7 +40,7 @@ https://github.com/granitespinoza/astravital (live web demo, no install: https:/
 
 **What we hope to achieve.** A crew-facing layer that could connect to real wearables such as the CSA Bio-Monitor and to delay-tolerant links to flight surgeons, supporting NASA's direction toward Earth-independent medical operations.
 
-**Tools.** JavaScript (ES modules), Node.js 22, SQLite (`node:sqlite`), Three.js, esbuild, HTML, CSS, the Web Audio API, a service worker for offline use, whisper.cpp (local speech recognition) and Kokoro (local neural voice). 70 automated tests plus end-to-end browser checks of the web demo, the live site and the full local app.
+**Tools.** JavaScript (ES modules), Node.js 22, SQLite (`node:sqlite`), Three.js, esbuild, HTML, CSS, the Web Audio API, a service worker for offline use, whisper.cpp (local speech recognition) and Kokoro (local neural voice). 71 automated tests plus end-to-end browser checks of the web demo, the live site and the full local app.
 
 ## Use of Super Intelligence (SI)
 

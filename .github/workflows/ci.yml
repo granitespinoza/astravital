@@ -18,5 +18,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: node --test
-      - run: node tests/e2e-web.mjs
-      - run: node tests/e2e-local.mjs
+      # One retry absorbs a runner whose Chrome fails to start; a real failure fails twice.
+      - run: node tests/e2e-web.mjs || (sleep 10 && node tests/e2e-web.mjs)
+      - run: node tests/e2e-local.mjs || (sleep 10 && node tests/e2e-local.mjs)

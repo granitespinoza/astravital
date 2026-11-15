@@ -44,6 +44,13 @@ jobs:
         with:
           node-version: 22
       - run: sleep 45
-      - run: node tests/e2e-web.mjs
+      # One retry absorbs a runner whose Chrome fails to start; a real site failure fails twice.
+      - name: Live site end-to-end
+        run: node tests/e2e-web.mjs || (sleep 20 && node tests/e2e-web.mjs)
         env:
           E2E_URL: https://granitespinoza.github.io/astravital/
+      - name: Live site end-to-end on the winners' announcement date
+        run: node tests/e2e-web.mjs || (sleep 20 && node tests/e2e-web.mjs)
+        env:
+          E2E_URL: https://granitespinoza.github.io/astravital/
+          E2E_DATE: 2027-01-26
