@@ -1,4 +1,4 @@
-// AI assistance: Anthropic Claude. See docs/SI-USAGE.md.
+// AI assistance: Anthropic Claude and OpenAI Codex. See docs/SI-USAGE.md.
 // End-to-end check of the public web demo, driven like a judge would use it, in headless Chrome.
 // Default target: a local copy of app/ served WITHOUT the API (web demo mode).
 // Published site: E2E_URL=https://granitespinoza.github.io/astravital/ node tests/e2e-web.mjs
@@ -6,15 +6,25 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {createServer} from 'node:http';
 import {existsSync} from 'node:fs';
-import {mkdtemp, readFile, realpath, rm} from 'node:fs/promises';
+import {mkdtemp, readFile, realpath, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {extname, join, resolve, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 
-const browserPath = process.env.BROWSER_PATH ?? ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser',
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'].find(existsSync);
-assert.ok(browserPath, 'Install Chrome or set BROWSER_PATH.');
+const localApps = process.env.LOCALAPPDATA ?? '';
+const programFiles = process.env.ProgramFiles ?? '';
+const programFilesX86 = process.env['ProgramFiles(x86)'] ?? '';
+const browserPath = process.env.BROWSER_PATH ?? [
+  join(programFiles, 'Google/Chrome/Application/chrome.exe'),
+  join(localApps, 'Google/Chrome/Application/chrome.exe'),
+  join(programFilesX86, 'Microsoft/Edge/Application/msedge.exe'),
+  join(programFiles, 'Microsoft/Edge/Application/msedge.exe'),
+  '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser',
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+].find(existsSync);
+assert.ok(browserPath, 'Install Chrome or Edge, or set BROWSER_PATH to a Chromium executable.');
 
 async function until(read, what, ms = 15000) {
   const end = Date.now() + ms;
@@ -22,14 +32,17 @@ async function until(read, what, ms = 15000) {
   throw new Error('Timed out waiting for ' + what);
 }
 
-// Static server for app/ with no API routes, so the page must fall back to the in-browser web demo.
+// Match the Pages project subpath and provide no API, so both views must use the web demo.
+const projectPath = '/astravital/';
 function staticServer() {
   const root = fileURLToPath(new URL('../app/', import.meta.url));
   const types = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wav': 'audio/wav', '.woff2': 'font/woff2'};
   const server = createServer(async (req, res) => {
-    const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-    const file = resolve(root, '.' + (path.endsWith('/') ? path + 'index.html' : path));
     try {
+      const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+      if (!path.startsWith(projectPath)) throw new Error('outside');
+      const relative = path.slice(projectPath.length);
+      const file = resolve(root, relative.endsWith('/') || !relative ? relative + 'index.html' : relative);
       if (!file.startsWith(resolve(root) + sep)) throw new Error('outside');
       const body = await readFile(file);
       res.writeHead(200, {'Content-Type': types[extname(file)] ?? 'application/octet-stream'}).end(body);
@@ -43,11 +56,19 @@ let server, browser, socket;
 const failures = [];
 try {
   let url = process.env.E2E_URL;
-  if (!url) { server = await staticServer(); url = `http://127.0.0.1:${server.address().port}/`; }
+  if (!url) { server = await staticServer(); url = `http://127.0.0.1:${server.address().port}${projectPath}`; }
   const origin = new URL(url).origin;
-  browser = spawn(browserPath, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
-    '--remote-debugging-port=0', '--user-data-dir=' + profile, '--window-size=1440,900', 'about:blank'], {stdio: 'ignore'});
-  const [port, wsPath] = (await until(() => readFile(join(profile, 'DevToolsActivePort'), 'utf8').catch(() => null), 'Chrome')).trim().split(/\r?\n/);
+  browser = spawn(browserPath, ['--headless=new', '--disable-gpu', '--disable-background-networking', '--no-first-run',
+    '--no-default-browser-check', '--remote-debugging-port=0', '--user-data-dir=' + profile, '--window-size=1440,900',
+    'about:blank'], {stdio: 'ignore', windowsHide: true});
+  let startupError;
+  browser.once('error', error => { startupError = error; });
+  const [port, wsPath] = (await until(async () => {
+    if (startupError) throw startupError;
+    if (browser.exitCode !== null) throw new Error(`Chromium exited before starting (code ${browser.exitCode}).`);
+    try { return await readFile(join(profile, 'DevToolsActivePort'), 'utf8'); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }, 'Chromium debugging endpoint')).trim().split(/\r?\n/);
   socket = new WebSocket(`ws://127.0.0.1:${port}${wsPath}`);
   await new Promise((ok, fail) => { socket.onopen = ok; socket.onerror = fail; });
   let seq = 0; const pending = new Map(); const errors = []; const requests = new Set(); let session;
@@ -98,9 +119,89 @@ try {
   await js(`document.getElementById('show-body').click(); true`);
   check('body context view opens', await js(`document.getElementById('show-body').getAttribute('aria-pressed') === 'true'`));
 
-  const external = [...requests].filter(r => !r.startsWith(origin) && !r.startsWith('data:') && !r.startsWith('blob:'));
+  const externalRequests = () => [...requests].filter(request => {
+    const target = new URL(request);
+    return target.origin !== origin && !['data:', 'blob:'].includes(target.protocol);
+  });
+  const external = externalRequests();
   check('no requests to other domains', external.length === 0, external.join(', '));
   check('no JavaScript errors', errors.length === 0, errors.join(' | '));
+
+  requests.clear();
+  errors.length = 0;
+  const groundLink = await js(`(() => {
+    const link = document.getElementById('earth-doctor-link');
+    return link?.getClientRects().length && link.textContent.includes('Earth doctor view') ? link.href : null;
+  })()`);
+  check('glasses page links visibly to Earth doctor view', Boolean(groundLink));
+  assert.ok(groundLink, 'Expected a visible link to mission.html#ground');
+  const wearerReading = await js(`Number(document.getElementById('reading-value').textContent)`);
+  check('glasses link carries the repeated check',new URL(groundLink).searchParams.get('case') === 'repeat');
+  await page('Emulation.setDeviceMetricsOverride', {width: 1440, height: 900, deviceScaleFactor: 1, mobile: false});
+  await page('Page.navigate', {url:groundLink});
+  await until(() => js(`document.getElementById('connection')?.textContent.includes('WEB DEMO') &&
+    document.querySelector('#ground-history svg')`), 'Ground web demo with seeded history');
+  check('Ground displays WEB DEMO and SIMULATED DATA', await js(`!document.getElementById('ground-panel').hidden &&
+    document.body.innerText.includes('SIMULATED DATA') && document.body.innerText.includes('WEB DEMO')`));
+  check('Ground displays the resting heart-rate measurement and personal band', await js(`
+    /\\d+\\s*bpm/i.test(document.getElementById('ground-heart').innerText) &&
+    !!document.querySelector('#ground-history svg .chart-band')`));
+  check('Ground opens the same repeated check for Alex Morgan',await js(`
+    document.getElementById('ground-member').value === 'crew-03' &&
+    document.getElementById('ground-shared-case').textContent.includes('Repeat resting check') &&
+    parseFloat(document.querySelector('#ground-heart .mission-value').textContent) === ${wearerReading}`));
+  check('Ground displays the prioritized inbox and crew timeline', await js(`
+    /ALERT/i.test(document.getElementById('ground-inbox').innerText) &&
+    document.getElementById('ground-timeline').children.length > 0`));
+  await js(`document.getElementById('ground-note').value = 'Training note from E2E';
+    document.getElementById('ground-action-form').requestSubmit(); true`);
+  await until(() => js(`document.getElementById('ground-timeline').innerText.includes('Training note from E2E')`), 'Ground note saved');
+  await page('Page.reload');
+  await until(() => js(`document.getElementById('ground-timeline')?.innerText.includes('Training note from E2E')`), 'Ground note after reload');
+  check('Ground note survives a reload', true);
+  if (process.env.GROUND_SCREENSHOT_PATH) {
+    await until(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),
+      'Ground anatomy');
+    await js(`document.fonts.ready.then(() => true)`);
+    const {data} = await page('Page.captureScreenshot', {format:'png', fromSurface:true});
+    await writeFile(process.env.GROUND_SCREENSHOT_PATH, Buffer.from(data, 'base64'));
+  }
+
+  await js(`document.getElementById('ground-bone-button').click()`);
+  check('Ground displays the seeded bone scan', await js(`document.getElementById('ground-bone').getClientRects().length > 0 &&
+    /g\\/cm[²2]/.test(document.getElementById('ground-bone').innerText) &&
+    document.getElementById('ground-bone').innerText.includes('DXA')`));
+  await until(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),'Ground anatomy controls');
+  if (await js(`Boolean(document.querySelector('#ground-scene canvas'))`)) {
+    await js(`document.getElementById('ground-heart-button').click();
+      document.getElementById('ground-zoom-in').click(); true`);
+    check('Ground zooms in on the heart',await js(`
+      document.getElementById('ground-scene').dataset.region === 'heart' &&
+      document.getElementById('ground-scene').dataset.zoom === '4'`));
+    await js(`document.getElementById('ground-bone-button').click(); true`);
+    check('Ground follows the left hip with the same magnification',await js(`
+      document.getElementById('ground-scene').dataset.region === 'bone' &&
+      document.getElementById('ground-scene').dataset.zoom === '4'`));
+    await js(`document.getElementById('ground-zoom-reset').click(); true`);
+    check('Full body restores the overview',await js(`document.getElementById('ground-scene').dataset.zoom === '1'`));
+  }
+  await js(`(() => {
+    const select = document.getElementById('ground-member');
+    select.value = 'crew-01';
+    select.dispatchEvent(new Event('change', {bubbles:true}));
+    document.getElementById('ground-bone-button').click();
+  })()`);
+  check('Ground discloses a missing scan for another crew member', await js(`
+    document.getElementById('ground-bone').innerText.includes('No bone scan in this simulation')`));
+
+  for (const [width, height] of [[768, 1024], [390, 844]]) {
+    await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: true});
+    check(`Ground fits a ${width} px viewport`, await js(`window.innerWidth === ${width} &&
+      document.documentElement.scrollWidth <= window.innerWidth + 1`));
+  }
+  const groundExternal = externalRequests();
+  check('Ground makes no requests to other domains', groundExternal.length === 0, groundExternal.join(', '));
+  check('Ground has no JavaScript errors', errors.length === 0, errors.join(' | '));
 } finally {
   socket?.close(); browser?.kill(); server?.close();
   await rm(profile, {recursive: true, force: true}).catch(() => {});

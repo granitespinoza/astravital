@@ -112,3 +112,43 @@ AI assistance: Anthropic Claude. Machine: macOS, Node 22.23.2, seed 142.
 | Voice reply in the browser | Asked "How is my heart?" | `POST /api/speak` returned 200; Astra entered the SPEAKING state |
 
 Limits: browser checks were visual, on one machine and one browser; no user study; synthetic data only.
+
+## Mission LAN integration — 2026-11-15
+
+Windows, Node.js 26.13.1, base commit `13e48de`, synthetic seed 142.
+
+| Check | Method | Result |
+| --- | --- | --- |
+| Existing suite and mission profile | `node --test` | 63 tests, 61 passed, 0 failed, two optional voice integrations skipped. |
+| Crew → CMO → Ground | `tests/mission.test.js`, two scoped HTTP clients on loopback | WATCH and ALERT, conflicting packet rejection, preserved baseline, Gold and Silver lineage, CMO acknowledgement, queued report with withheld content, simulated receipt and persistent reviewed state after restart. |
+| CMO desktop startup | Edge headless opening the loopback mission page | CMO console rendered, connection status became connected and the synthetic roster appeared. |
+| Physical phone hotspot | Initial Wi-Fi interface probe and browser review | The Wi-Fi address differed from the old v0.6 address. A Wi-Fi-address request from the managed test environment timed out. A real phone and the full browser interaction must still be verified. |
+
+The laptop and a physical phone were not tested together. The simulated Ground states were verified in HTTP and SQLite; they do not represent an Earth transmission.
+
+## Earth doctor dashboard integration — 2026-11-15
+
+Windows, Node.js 26.13.1 for the final test suite, synthetic seed 142. The merge checkpoint `80ae958` combines the integration branch with the available `origin/main` at `964c0b7`. The managed shell could not resolve GitHub to refresh that ref.
+
+| Check | Command | Observed result |
+| --- | --- | --- |
+| Frozen reports, priority, bone provenance and persisted actions | `node --test --test-name-pattern="Ground" tests/mission.test.js tests/web-demo.test.js` | 2 passed, 0 failed. Simulated receipt releases crew details. SQLite actions survive reopening and browser notes survive recreating the demo. |
+| Static mission snapshot | `node scripts/export-demo.mjs` | Repeated export had identical SHA-256. Four 14-sol histories, one confirmed ALERT, one WATCH and one crew member with bone evidence. |
+| Full Node suite | `node --test` | 65 tests, 55 passed, 2 optional voice checks skipped. Eight HTTP tests ended with `EACCES` connecting to localhost, including the pre-existing mission test. |
+| Install and build | `npm ci`, `npm run build`, `npm run verify` | The registry lookup failed with `ENOTFOUND` and the offline cache was incomplete. Both build commands stopped with `esbuild` unavailable. |
+| Chrome and integrated browser | `node tests/e2e-web.mjs` and local web demo navigation | Chrome exited before exposing DevTools. The integrated browser timed out accessing localhost. The 12 visor checks and the Ground browser checks remain pending on this revision. |
+| Static checks | `node --check` and `git diff --check` | Passed for changed scripts and the diff. |
+
+After successful browser startup, set `GROUND_SCREENSHOT_PATH` to `docs/media/07-earth-doctor.png` and run `node tests/e2e-web.mjs` to capture the dashboard at 1440 × 900. Inspect the capture and the 768 px and 390 px layouts before adding it to the README. CI and the deployed demo need verification on the reviewed revision.
+
+### Shared glasses and Ground case
+
+`node --test tests/web-demo.test.js` passed all four tests. Alex Morgan's initial 68 bpm and repeat 73 bpm use the same readings, decisions and evidence IDs in both views. The bone decisions also match. Repeating `node scripts/export-demo.mjs` produced identical mission snapshot bytes. The direct SQLite Ground test also passed.
+
+The browser check now exercises the case link and anatomy magnification. This run stopped before Chrome exposed DevTools, so visual verification and capture are still pending.
+
+### N2 determinism and idempotence
+
+[Verified result] Windows, Node.js 24.22.1, seed 142. `node --test tests/database.test.js tests/web-demo.test.js` passed all eight checks. `node --test --test-name-pattern="Ground releases" tests/mission.test.js` passed its direct SQLite check. A repeated packet retained the same evidence ID and mission sol, and changed data with that packet ID was rejected without adding layer records. Reusing a teleconsult request ID preserved one matching entry after reopening the database. The suite also checked seed and review persistence and the matching initial and repeat evidence across glasses and Ground.
+
+The public glasses demo opened and its **Start experience** and **Body context** clicks worked. The public Ground path returned HTTP 404 at the time of inspection. The N2 result applies to the checked local code and simulated inputs. It does not certify the public Ground deployment or a prediction model.

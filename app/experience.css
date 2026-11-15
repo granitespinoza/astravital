@@ -24,4 +24,6 @@
 .body-label{top:100px}
 /* AI assistance: Anthropic Claude. Web demo (no server): notice and hide server-only links. */
 .web-demo-note{margin:0 0 14px;padding:10px 14px;border:1px solid #455552;border-radius:10px;font-size:.62rem;color:#c8d9d4;background:#080c0ed9}
+#shared-case{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem 1rem;font-size:.83rem}
+#earth-doctor-link{color:var(--cyan);padding-block:.4rem}
 body[data-web-demo=true] a[href="/api/reviews"],body[data-web-demo=true] a[href="/health"]{display:none}

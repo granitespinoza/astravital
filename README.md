@@ -44,6 +44,15 @@ ASTRAVITAL helps an astronaut on a lunar station or a Mars base understand two m
 
 ---
 
+## Earth doctor view
+
+Open **Earth doctor view** from the glasses page to inspect a simulated flight-surgeon report. The body view links to resting heart rate and left-hip bone density. The heart panel shows the personal reference, a 14-sol history and the decision threshold. The inbox puts confirmed alerts first and the evidence panel exposes Bronze, Silver and Gold records.
+
+- **Web demo** opens Alex Morgan's received training report. Start with the glasses, then select **Earth doctor view** to inspect the same resting check from Ground. After **Check again**, the link opens the repeat check with the same personal reference and evidence. Select **Heart** or **Bones** to zoom into the corresponding zone, then choose **Full body** to return to the overview. Alex has synthetic DXA scans. The other crew members have no scans. Ground actions stay in this browser.
+- **Local rehearsal** starts with `node scripts/start-mission.mjs` at `http://127.0.0.1:8766/mission.html`. Pair a crew client, send readings and queue a report. **Simulate Earth receipt** advances the exercise immediately. Actions stay in SQLite. See the [walkthrough](docs/MISSION-LAN.md).
+
+**From space to Earth · future vision.** A similar workflow could help clinicians review delayed observations from people in remote terrestrial settings. This prototype exercises the workflow with synthetic observations and local actions.
+
 ## Try the demo (about 1 minute)
 
 1. Open `http://127.0.0.1:4173/` after [starting it locally](#run-it-locally). Tap the glasses or **Start experience**: the camera moves through the lens into the wearer's view.
@@ -140,6 +149,8 @@ npm run demo
 - **Start the demo from a clean state** (for example, before recording): stop the server, delete `.runtime/demo.sqlite` and start it again. Saved review requests from earlier runs are removed and seed 142 is applied again.
 
 ### API
+
+For the three-level mission rehearsal, see [Mission LAN demonstration](docs/MISSION-LAN.md). It adds a phone crew simulator, a laptop CMO view and an Earth doctor dashboard to the same local database.
 
 | Route | Purpose |
 | --- | --- |

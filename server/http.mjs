@@ -1,5 +1,6 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 import {createServer} from 'node:http';
+import {randomBytes} from 'node:crypto';
 import {readFile,stat,mkdir} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -25,9 +26,14 @@ async function body(req,limit){
 }
 function send(res,status,value){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(value));}
 
-export async function startApplication({port=0,host='127.0.0.1',dbPath=process.env.DB_PATH ?? resolve(root,'.runtime/demo.sqlite')}={}){
+const missionAssets = new Set(['/mission.html','/mission.css','/mission.js','/health-status.js','/experience.css',
+  '/overpass-regular.woff2','/overpass-bold.woff2','/fira-sans-bold.woff2']);
+const loopback = address => ['127.0.0.1','::1','::ffff:127.0.0.1'].includes(address);
+
+export async function startApplication({port=0,host='127.0.0.1',dbPath=process.env.DB_PATH ?? resolve(root,'.runtime/demo.sqlite'),mission=false,lanAddress}={}){
   await mkdir(resolve(dbPath,'..'),{recursive:true});
-  const db=createDatabase({path:dbPath,seed:Number(process.env.SEED ?? 142)});
+  const db=createDatabase({path:dbPath,seed:Number(process.env.SEED ?? 142),mission});
+  const pairs = new Map(db.mission?.getCmo().crew.map(member => [randomBytes(24).toString('hex'),member.crewId]));
   const limits=new Map();
   let asrBusy=false;
   const server=createServer(async(req,res)=>{
@@ -39,6 +45,44 @@ export async function startApplication({port=0,host='127.0.0.1',dbPath=process.e
       const origin=req.headers.origin;
       if(req.method==='POST' && origin && new URL(origin).origin!==`http://${req.headers.host}`){send(res,403,{error:'Cross-origin writes are disabled.'});return;}
       const id=req.socket.remoteAddress ?? 'local';
+      if (mission) {
+        const local = loopback(id);
+        const hostName = new URL('http://' + req.headers.host).hostname;
+        if (local ? !['127.0.0.1','localhost','[::1]'].includes(hostName)
+          : !lanAddress || req.socket.localAddress !== lanAddress || hostName !== lanAddress) {
+          send(res,403,{error:'Use the configured mission address.'});return;
+        }
+        if (url.pathname.startsWith('/api/mission/')) {
+          const route = req.method + ' ' + url.pathname.slice('/api/mission/'.length);
+          if (route === 'GET ping') { send(res,200,{ok:true,simulated:true});return; }
+          const token = req.headers.authorization?.match(/^Bearer ([a-f0-9]{48})$/)?.[1];
+          const crewId = pairs.get(token);
+          if (route === 'GET crew' || route === 'POST readings') {
+            if (!crewId) { send(res,401,{error:'Open a current crew link from the CMO console.'});return; }
+            const value = route === 'GET crew' ? db.mission.getCrew(crewId)
+              : db.mission.ingest(crewId, JSON.parse((await body(req,2048)).toString('utf8')));
+            send(res,200,value);return;
+          }
+          if (!local || req.headers.authorization) { send(res,403,{error:'Open CMO and Ground on the mission laptop.'});return; }
+          if (route === 'GET cmo') {
+            const address = lanAddress ?? '127.0.0.1';
+            const links = [...pairs].map(([key,id]) => ({id,url:`http://${address}:${server.address().port}/mission.html#crew=${key}`}));
+            send(res,200,{...db.mission.getCmo(),links,lanEnabled:Boolean(lanAddress),reviewCount:db.listReviews().length});return;
+          }
+          if (route === 'GET ground') { send(res,200,db.mission.getGround());return; }
+          const action = {'POST ack':'acknowledge','POST reports':'queueReport','POST report-state':'updateReport',
+            'POST ground-action':'saveGroundAction'}[route];
+          if (!action) { send(res,404,{error:'Unknown mission route.'});return; }
+          const input = JSON.parse((await body(req,2048)).toString('utf8'));
+          send(res,200,db.mission[action](input));return;
+        }
+        if (!local) {
+          if (req.method === 'GET' && url.pathname === '/') {
+            res.writeHead(302,{Location:'/mission.html','Cache-Control':'no-store'});res.end();return;
+          }
+          if (!missionAssets.has(url.pathname)) {send(res,403,{error:'This surface is available only on the mission laptop.'});return;}
+        }
+      }
       const minute=Math.floor(Date.now()/60000);
       let count=limits.get(id);
       if(!count||count.minute!==minute){count={minute,n:0};limits.set(id,count);}
@@ -49,7 +93,7 @@ export async function startApplication({port=0,host='127.0.0.1',dbPath=process.e
         const capabilities=voice?await voice.voiceCapabilities():{ready:false,reason:'Run npm run setup:voice.'};
         const tts=await ttsModule();
         const speech=tts?await tts.ttsCapabilities():{ready:false,reason:'PACKAGE_MISSING'};
-        send(res,200,{ok:true,profile:'local',database:db.health(),voice:capabilities,tts:speech,simulatedData:true});return;
+        send(res,200,{ok:true,profile:'local',database:db.health(),voice:capabilities,tts:speech,simulatedData:true,...(mission ? {mission:true} : {})});return;
       }
       if(req.method==='GET'&&url.pathname==='/api/state'){send(res,200,db.getState(url.searchParams.get('domain')??'cardiovascular',url.searchParams.get('scenario')??undefined));return;}
       if(req.method==='GET'&&url.pathname==='/api/evidence'){send(res,200,db.getEvidence());return;}

@@ -1,14 +1,17 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 // Update the cache version when releasing a changed app shell.
-const cacheName = 'astravital-dashboard-v11';
+const cacheName = 'astravital-dashboard-v13';
 const prefix = 'astravital-dashboard-';
 const files = [
-  './', './index.html', './legacy.html', './experience.css?v=11', './experience.js?v=11', './view3d.bundle.js?v=11', './web-demo.bundle.js?v=11', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
-  './scenarios.js', './storage.js', './chart.js', './explorer.js',
+  './', './index.html', './legacy.html', './experience.css?v=13', './experience.js?v=13', './view3d.bundle.js?v=13', './web-demo.bundle.js?v=13', './mission.html', './mission.js', './mission.css', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
+  './scenarios.js', './storage.js', './chart.js', './explorer.js', './health-status.js',
+  './mission.js?v=13', './mission.css?v=13', './ground-view.js?v=13', './ground-model.js',
+  './mission-demo.js?v=13', './mission-demo.json',
   './hud-check.wav', './hud-followup.wav', './hud-saved.wav', './hud-error.wav', './hud-explain.wav',
   './fira-sans-bold.woff2', './overpass-regular.woff2', './overpass-bold.woff2',
 ];
 const shell = new Set(files.map(file => new URL(file, self.registration.scope).href));
+const missionPage = new URL('./mission.html', self.registration.scope);
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(cacheName).then(cache => cache.addAll(files)).then(() => self.skipWaiting()));
@@ -28,6 +31,8 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   // Hashes select browser-only views; all views use the same cached app shell.
   url.hash = '';
+  // A case or domain is selected in the browser after the mission document loads.
+  if (url.origin === missionPage.origin && url.pathname === missionPage.pathname) url.search = '';
   if (!shell.has(url.href)) return;
 
   event.respondWith((async () => {

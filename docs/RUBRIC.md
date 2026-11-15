@@ -1,14 +1,14 @@
 # Rubric self-check (official 2026 criteria)
 
-AI assistance: Anthropic Claude. Our evidence map against the five official criteria (each scored 1–5 by judges). Not a predicted score.
+AI assistance: Anthropic Claude and OpenAI Codex. Our evidence map against the five official criteria (each scored 1–5 by judges).
 
 | Criterion | Evidence in this repository | Remaining gap |
 | --- | --- | --- |
-| Impact | Non-physician astronaut understands a heart or bone change and gets a safe next step during an Earth blackout (README, demo) | No user study yet |
-| Creativity | Glasses-first view, personal baseline, data-quality states, onboard human review that keeps working without Earth; builds on NASA MDA and CSA Space Health without claiming them | — |
-| Validity | 62 automated tests (CI green), web-demo parity test, real local voice tests, NASA-STD-3001 V2 10020/10169/10170, AI safety analysis (docs/AI-SAFETY.md) | Synthetic data; no clinical validation |
+| Impact | Crew can inspect a heart or bone change and prepare an onboard review. A flight surgeon can review the simulated report and escalation evidence. | No user study yet |
+| Creativity | Glasses-first view, personal baseline and onboard human review that keeps working without Earth. Ground adds simulated delayed review using the same data. | Real Earth transport remains future work |
+| Validity | Seeded report and parity tests, evidence lineage and explicit actions. Missing and stale cues, operator control and rationale follow the design intent of NASA-STD-3001 V2 10020, 10169 and 10170. See [results](RESULTADOS.md) and [AI safety](AI-SAFETY.md). | Synthetic data. Full integration checks are tracked in results. |
 | Relevance | Directly answers the challenge (self-assessment and action); NASA HRP, NASA-STD-3001, EIMO, Mars communications and MDA shape the design | — |
-| Presentation | Judge-facing README with screenshots, one-minute walkthrough, web demo link | Demo video (≤30 s) or deck (≤7 slides) still to record |
+| Presentation | Judge-facing walkthrough and visor screenshots, plus a direct link from the web demo to the Earth doctor view | Demo video (≤30 s) or deck (≤7 slides) still to record |
 
 ## Repository requirements (Project Submission Guide)
 

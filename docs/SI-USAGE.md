@@ -36,3 +36,17 @@
 | Continuation of Codex's glasses-intro and voice work after Codex reached its usage limit | Commits on the `chore/hackathon-coherence` branch |
 
 [Evidence] Include recognizer binary/model source, pinned version, checksum and license in its generated or committed manifest before redistributing artifacts. The project has no chosen overall license; the licenses of fonts, recognizer/model and future voices remain separate. No remote medical generative service, Azure deployment or native SPECS integration is established by these files.
+
+## Mission LAN integration
+
+[Evidence] OpenAI Codex adapted the team’s local v0.5 and v0.6 demonstrators to the main Node.js and SQLite architecture. The contribution covers the crew transport, pairing, CMO console, simulated Ground reports, verification and setup notes. The mission interface uses the existing ASTRAVITAL styles and fonts. It adds no model inference, generated assets or external runtime services.
+
+## Earth doctor dashboard integration
+
+OpenAI Codex assisted with the dashboard, SQLite and browser workflows, test data export, automated tests, documentation and manual review. Codex subagents were assigned layout, tests and documentation. The browser test changes supplied by the test subagent were reviewed and completed in the integrated branch. The project guides informed scope, local operation, test coverage and presentation evidence. The globally named design and audit guides were unavailable.
+
+The dashboard reuses the existing Three.js anatomy, history chart and bundled typography. The architecture diagram uses Mermaid. The browser and shell checks are recorded in [results](RESULTADOS.md).
+
+OpenAI Codex linked the glasses and Ground demos to the same seed-142 resting check and added view magnification for the heart and left hip. The anatomy stays illustrative with the existing code-built model.
+
+OpenAI Codex checked N2 reproducibility and retry behavior and documented the proposed longitudinal evaluation and surgeon-led release criteria. [Results](RESULTADOS.md#n2-determinism-and-idempotence) and [architecture](ARQUITECTURA.md#longitudinal-learning-and-decision-support) record the scope.
