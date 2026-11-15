@@ -1,5 +1,5 @@
 // AI assistance: OpenAI Codex. Real local voice; synthetic health observations.
-import {createScene} from './view3d.bundle.js?v=8';
+import {createScene} from './view3d.bundle.js?v=9';
 const $=id=>document.getElementById(id);
 const remember=id=>{try{localStorage.setItem('astra-session',id);}catch{}};
 let sessionId=(()=>{try{return localStorage.getItem('astra-session')??crypto.randomUUID();}catch{return crypto.randomUUID();}})();remember(sessionId);
@@ -30,7 +30,7 @@ async function turn(text,{fromVoice=false}={}){if(busy||!text.trim())return;busy
 async function setDomain(next){if(busy)return;await turn(next==='bone'?'Astra, how are my bones?':'Astra, how is my heart?');}
 async function init(){try{const health=await api('/health');readyVoice=Boolean(health.voice?.ready);readyTts=Boolean(health.tts?.ready);$('api-status').textContent='LOCAL SYSTEM READY';if(!readyVoice)$('voice-error').textContent='Speech recognition needs setup. The text controls work now.';const pair=await Promise.all([api('/api/state?domain=cardiovascular'),api('/api/state?domain=bone')]);for(const item of pair)states[item.domain]=item;state=pair[0];render();showMode('glasses');scene.setMode('intro');document.querySelector('.visual').dataset.intro='ready';await loadEvidence();}catch(error){$('api-status').textContent='LOCAL SERVICE UNAVAILABLE';$('voice-error').textContent=error.message+' Start the local application and reload.';}}
 for(const id of ['domain-heart','hud-heart'])$(id).addEventListener('click',()=>setDomain('cardiovascular'));for(const id of ['domain-bone','hud-bone'])$(id).addEventListener('click',()=>setDomain('bone'));
-for(const[id,next]of[['show-focus','focus'],['show-body','body'],['show-glasses','glasses']])$(id).addEventListener('click',()=>{showMode(next);if(next==='glasses'){scene.setMode('intro');document.querySelector('.visual').dataset.intro='ready';$('lens-intro').hidden=false;}});
+for(const[id,next]of[['show-focus','focus'],['show-body','body'],['show-glasses','glasses']])$(id).addEventListener('click',()=>{if(next==='glasses'){resetIntro();return;}showMode(next);});
 $('explain').addEventListener('click',()=>turn('Show medical details'));$('next-action').addEventListener('click',()=>turn(domain==='bone'||state?.performed?'Request review':'Check again'));$('confirm-review').addEventListener('click',()=>turn('Confirm save'));$('cancel-review').addEventListener('click',()=>turn('Cancel'));
 $('message-form').addEventListener('submit',event=>{event.preventDefault();const value=$('message').value;$('message').value='';void turn(value);});$('toggle-evidence').addEventListener('click',()=>{const show=$('evidence-detail').hidden;$('evidence-detail').hidden=!show;$('toggle-evidence').setAttribute('aria-expanded',String(show));if(show)void loadEvidence();});
 function resetCapture(){recording=false;frames=[];preRoll=[];quietMs=0;totalMs=0;speechMs=0;}
@@ -47,7 +47,10 @@ void init();
 // Update older app shells without caching API responses.
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
 
+// AI assistance: Anthropic Claude polished the lens entry: iris flash, staggered visor boot and a replay control.
 let entering=false;
-async function enterLenses(){if(entering)return;entering=true;const visual=document.querySelector('.visual');visual.dataset.intro='entering';$('skip-intro').hidden=false;await scene.enterWearerView();showMode('focus');visual.dataset.intro='done';$('lens-intro').hidden=true;$('skip-intro').hidden=true;entering=false;}
+async function enterLenses(){if(entering)return;entering=true;const visual=document.querySelector('.visual');visual.dataset.intro='entering';$('skip-intro').hidden=false;$('replay-intro').hidden=true;try{await scene.enterWearerView();}finally{showMode('focus');visual.dataset.intro='done';$('lens-intro').hidden=true;$('skip-intro').hidden=true;$('replay-intro').hidden=false;entering=false;}}
+function resetIntro(){if(entering)return;showMode('glasses');scene.setMode('intro');document.querySelector('.visual').dataset.intro='ready';$('lens-intro').hidden=false;$('replay-intro').hidden=true;}
 $('enter-lenses').addEventListener('click',enterLenses);
 $('skip-intro').addEventListener('click',()=>{scene.setMode('focus');});
+$('replay-intro').addEventListener('click',resetIntro);

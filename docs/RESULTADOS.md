@@ -95,3 +95,20 @@ The suite opened the static app on localhost, checked the desktop and mobile lay
 [Evidence] Azure scaffold is optional and disabled by default. No account login, resource deployment, PostgreSQL/Speech adapter, cloud persistence, clinical validation or public URL is established by this documentation update. Azure CLI and Bicep CLI were not found in PATH during the initial check; a later compiler-only validation, if performed, must be recorded explicitly.
 
 [Verified result] Infrastructure **compilation only**: the official standalone Bicep CLI **v0.49.2 (b34271ac51)** compiled `infra/azure/main.bicep` into an ARM JSON file with exit code 0 and no diagnostics. The compiler was downloaded into the chat's temporary work directory; no global CLI install or Azure sign-in occurred. Template parameters default `enableInfrastructure=false` and `enableEphemeralApiPreview=false`. No deployment/what-if, billing, resource availability, live identity permissions or cloud behavior was tested.
+
+## Claude continuation: lens entry, local voice and judge documentation — 2026-11-15
+
+AI assistance: Anthropic Claude. Machine: macOS, Node 22.23.2, seed 142.
+
+| Check | Command or method | Result |
+| --- | --- | --- |
+| Build and full suite | `npm run verify` | 59 tests: 57 passed, 0 failed, 2 skipped (opt-in integration tests) |
+| Local neural voice (Kokoro) with network guard | `RUN_TTS_INTEGRATION=1 node --test tests/tts.test.js` | 4/4 passed |
+| Local speech recognition on synthetic speech | `RUN_VOICE_INTEGRATION=1 node --test tests/voice.test.js` | 6/6 passed |
+| New voice route `/api/speak` | `node --test tests/api.test.js` (new test: readiness, text validation, cross-origin block) | 7/7 passed |
+| Synthesis latency | Direct `synthesize()` calls on two Astra sentences | About 2.7–3.0 s per sentence, including model load in an isolated process |
+| Lens entry in the browser | Manual check on `http://127.0.0.1:4173/`: ripple invitation, approach, pass through the lens, iris flash, staggered visor boot, replay control | Works as described. By design (code), reduced-motion users skip the animation; not checked in the browser |
+| Body context | Manual check: heart and left hip each with halo, ring and label; selected zone pulses | Works; illustrative anatomy, not a scan |
+| Voice reply in the browser | Asked "How is my heart?" | `POST /api/speak` returned 200; Astra entered the SPEAKING state |
+
+Limits: browser checks were visual, on one machine and one browser; no user study; synthetic data only.

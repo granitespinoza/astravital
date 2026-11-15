@@ -1,9 +1,9 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 // Update the cache version when releasing a changed app shell.
-const cacheName = 'astravital-dashboard-v8';
+const cacheName = 'astravital-dashboard-v9';
 const prefix = 'astravital-dashboard-';
 const files = [
-  './', './index.html', './legacy.html', './experience.css?v=8', './experience.js?v=8', './view3d.bundle.js?v=8', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
+  './', './index.html', './legacy.html', './experience.css?v=9', './experience.js?v=9', './view3d.bundle.js?v=9', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
   './scenarios.js', './storage.js', './chart.js', './explorer.js',
   './hud-check.wav', './hud-followup.wav', './hud-saved.wav', './hud-error.wav', './hud-explain.wav',
   './fira-sans-bold.woff2', './overpass-regular.woff2', './overpass-bold.woff2',

@@ -27,4 +27,12 @@
 
 [Simulation] Virtual cardiovascular/bone observations and seed parameters exercise software contracts; they are not NASA physiological records or clinical validation. Local speech recognition uses separately obtained pretrained artifacts. Installing those artifacts is not training them, and transcribed microphone speech is not a physiological measurement.
 
+## Anthropic Claude contributions (2026-11-14 and 2026-11-15)
+
+| Contribution | Where to inspect it |
+| --- | --- |
+| Agent environment, project skills and instructions; concept, requirements and source verification (including the official 2026 Space Apps guides and NASA-STD-3001 requirements) | [AGENTS.md](../AGENTS.md), [concept](CONCEPTO-SISTEMA.md), [requirements](REQUISITOS-MVP.md), [source audit](AUDITORIA-REFERENCIAS.md) |
+| Judge-facing README, AI-safety analysis and the drafted project-page text | [README](../README.md), [AI safety](AI-SAFETY.md), [submission text](SUBMISSION.md) |
+| Continuation of Codex's glasses-intro and voice work after Codex reached its usage limit | Commits on the `chore/hackathon-coherence` branch |
+
 [Evidence] Include recognizer binary/model source, pinned version, checksum and license in its generated or committed manifest before redistributing artifacts. The project has no chosen overall license; the licenses of fonts, recognizer/model and future voices remain separate. No remote medical generative service, Azure deployment or native SPECS integration is established by these files.

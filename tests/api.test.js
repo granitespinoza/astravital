@@ -224,3 +224,18 @@ test('confirmed HTTP review and its frozen cardiac evidence survive server resta
   assert.deepEqual(retry.data.review, saved[0]);
   assert.equal((await api.request('/api/reviews')).data.length, 1);
 });
+
+// AI assistance: Anthropic Claude. The voice route only reads existing text aloud and validates it before loading any model.
+test('voice output route reports readiness and validates text before synthesis', async t => {
+  const api = await application(t);
+  const health = await api.request('/health');
+  assert.equal(typeof health.data.tts.ready, 'boolean');
+  assert.equal(health.data.tts.localOnly, true);
+  for (const text of ['', '   ', 'x'.repeat(501), 42]) {
+    const result = await api.post('/api/speak', {text});
+    assert.equal(result.status, 400);
+    assert.equal(result.data.code, 'INVALID_TTS_TEXT');
+  }
+  const foreign = await api.post('/api/speak', {text: 'Hello'}, {Origin: 'http://untrusted.example'});
+  assert.equal(foreign.status, 403);
+});

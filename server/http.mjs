@@ -13,6 +13,11 @@ async function voiceModule(){
   try{return await import('../scripts/transcribe.mjs');}
   catch(error){if(error.code==='ERR_MODULE_NOT_FOUND')return null;throw error;}
 }
+// AI assistance: Anthropic Claude wired the local Kokoro voice (scripts/synthesize.mjs) into the API.
+async function ttsModule(){
+  try{return await import('../scripts/synthesize.mjs');}
+  catch(error){if(error.code==='ERR_MODULE_NOT_FOUND')return null;throw error;}
+}
 async function body(req,limit){
   let length=0;const chunks=[];
   for await(const chunk of req){length+=chunk.length;if(length>limit){const e=new Error('Request too large.');e.status=413;throw e;}chunks.push(chunk);}
@@ -42,7 +47,9 @@ export async function startApplication({port=0,host='127.0.0.1',dbPath=process.e
       if(req.method==='GET'&&url.pathname==='/health'){
         const voice=await voiceModule();
         const capabilities=voice?await voice.voiceCapabilities():{ready:false,reason:'Run npm run setup:voice.'};
-        send(res,200,{ok:true,profile:'local',database:db.health(),voice:capabilities,simulatedData:true});return;
+        const tts=await ttsModule();
+        const speech=tts?await tts.ttsCapabilities():{ready:false,reason:'PACKAGE_MISSING'};
+        send(res,200,{ok:true,profile:'local',database:db.health(),voice:capabilities,tts:speech,simulatedData:true});return;
       }
       if(req.method==='GET'&&url.pathname==='/api/state'){send(res,200,db.getState(url.searchParams.get('domain')??'cardiovascular',url.searchParams.get('scenario')??undefined));return;}
       if(req.method==='GET'&&url.pathname==='/api/evidence'){send(res,200,db.getEvidence());return;}
@@ -64,6 +71,18 @@ export async function startApplication({port=0,host='127.0.0.1',dbPath=process.e
         asrBusy=true;
         try{const result=await voice.transcribeWav(input,{language:url.searchParams.get('language')==='en'?'en':'es'});send(res,200,result);}
         finally{asrBusy=false;}
+        return;
+      }
+      if(req.method==='POST'&&url.pathname==='/api/speak'){
+        // Reads aloud a sentence Astra already produced; it never generates content.
+        const tts=await ttsModule();
+        if(!tts){send(res,503,{error:'Local voice output is not installed.',code:'PACKAGE_MISSING'});return;}
+        const input=JSON.parse((await body(req,4000)).toString('utf8'));
+        try{
+          const wav=await tts.synthesize(input.text);
+          res.writeHead(200,{'Content-Type':'audio/wav','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+          res.end(wav);
+        }catch(error){send(res,error.status ?? 503,{error:error.message,code:error.code ?? 'TTS_FAILED'});}
         return;
       }
       if(url.pathname.startsWith('/api/')){send(res,404,{error:'Unknown API route.'});return;}
