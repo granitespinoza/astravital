@@ -26,7 +26,7 @@ async function body(req,limit){
 }
 function send(res,status,value){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(value));}
 
-const missionAssets = new Set(['/mission.html','/mission.css','/mission.js','/health-status.js','/experience.css',
+const missionAssets = new Set(['/mission.html','/mission.css','/mission.js','/health-status.js','/forecast.js','/experience.css',
   '/overpass-regular.woff2','/overpass-bold.woff2','/fira-sans-bold.woff2']);
 const loopback = address => ['127.0.0.1','::1','::ffff:127.0.0.1'].includes(address);
 

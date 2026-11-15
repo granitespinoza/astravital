@@ -152,3 +152,21 @@ The browser check now exercises the case link and anatomy magnification. This ru
 [Verified result] Windows, Node.js 24.22.1, seed 142. `node --test tests/database.test.js tests/web-demo.test.js` passed all eight checks. `node --test --test-name-pattern="Ground releases" tests/mission.test.js` passed its direct SQLite check. A repeated packet retained the same evidence ID and mission sol, and changed data with that packet ID was rejected without adding layer records. Reusing a teleconsult request ID preserved one matching entry after reopening the database. The suite also checked seed and review persistence and the matching initial and repeat evidence across glasses and Ground.
 
 The public glasses demo opened and its **Start experience** and **Body context** clicks worked. The public Ground path returned HTTP 404 at the time of inspection. The N2 result applies to the checked local code and simulated inputs. It does not certify the public Ground deployment or a prediction model.
+
+## Experimental trend forecast — 2026-11-15
+
+AI assistance: Anthropic Claude. macOS, Node.js 22, synthetic data only. Model: damped-trend Holt exponential smoothing (`app/forecast.js`), shown only in the Earth doctor view as "Trend forecast · experimental". The heart decision still comes from the personal-reference rule.
+
+Method (`node scripts/forecast-eval.mjs`): 200 seeded synthetic crews × 180 sols (steady, gradual drift, short acute events). Time-ordered: each sol the model sees only earlier sols and predicts the next one. Compared with the last reading and with the fixed 14-sol personal reference mean.
+
+| History up to sol | MAE forecast (bpm) | MAE last reading | MAE fixed reference | 80% interval coverage |
+| --- | --- | --- | --- | --- |
+| 14 | 1.48 | 1.51 | 1.57 | 0.75 |
+| 30 | 1.49 | 1.45 | 1.83 | 0.78 |
+| 60 | 1.47 | 1.45 | 2.11 | 0.79 |
+| 90 | 1.51 | 1.47 | 1.94 | 0.80 |
+| 179 | 1.49 | 1.46 | 3.05 | 0.81 |
+
+Forecast WATCH warnings on steady crews: 0.016 per crew-day. On drifting crews the current two-reading rule flagged the drift earlier than the forecast (median −16 sols).
+
+**Reading.** The forecast adapts to each person: its error stays flat while a fixed reference degrades to 3.05 bpm. Intervals are close to calibrated. It does **not** yet beat the last reading and gives no earlier warning than the rule. We therefore keep the claim "early warning" and present the forecast as an evaluated experiment, not as prediction. Next step, per [ARQUITECTURA](ARQUITECTURA.md#longitudinal-learning-and-decision-support): real longitudinal data, hidden prospective evaluation, clinician review.
