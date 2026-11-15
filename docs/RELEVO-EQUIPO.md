@@ -32,6 +32,25 @@ Requisitos: Node.js 22.13 o superior. La instalación necesita internet una vez;
 - Voz local de Astra conectada (`POST /api/speak`), en un proceso aislado y con la red bloqueada.
 - README para jueces, salvaguardas contra alucinaciones (`docs/AI-SAFETY.md`) y texto listo para el formulario de Space Apps (`docs/SUBMISSION.md`).
 
+## Para el equipo presencial: revisar la experiencia de usuario
+
+**Traer lo último:** `git fetch origin && git checkout chore/hackathon-coherence && git pull`. Los cambios también se ven en el PR #2: https://github.com/granitespinoza/astravital/pull/2
+
+**Recorrido de 10 minutos.** Anotad lo que no se entienda a la primera:
+
+1. **Entrada:** ¿se entiende que hay que tocar las gafas? ¿La transición se siente fluida? ¿Se encuentra el botón "↺ Replay intro"?
+2. **Visor:** ¿se entienden "Heart · Review change" y "Bones · Worth a review" sin explicación?
+3. **Astra:** preguntad "How is my heart?" por voz y por texto. ¿La respuesta es corta y clara? ¿La voz se entiende bien?
+4. **Flujo de revisión:** "Check again" → "Prepare review" → "Confirm save". ¿Queda claro que no se envió nada a la Tierra?
+5. **Medical details:** ¿un médico entendería los números y su origen?
+6. **Body context:** ¿se distinguen el corazón y la cadera?
+7. **Sin internet:** con el servidor local en marcha, desconectad el Wi-Fi. ¿Sigue funcionando todo?
+8. **Pantalla pequeña:** estrechad la ventana del navegador. ¿Se lee bien?
+
+**Cómo proponer mejoras:** abrid un issue en https://github.com/granitespinoza/astravital/issues con título, captura y prioridad (alta, media o baja). Para cambios de código, usad una rama propia y un PR hacia `chore/hackathon-coherence`. No editéis a la vez que Claude `app/experience.js`, `app/view3d.js` ni `README.md`.
+
+**Qué está haciendo Claude ahora:** una demo web que funciona sin servidor (se publicará en https://granitespinoza.github.io/astravital/ al fusionar en `main`), CI con pruebas automáticas, un kit de demo (capturas, guion de 30 s, deck de 7 diapositivas) y una revisión al estilo de los jueces.
+
 ## Qué falta (por prioridad)
 
 1. **Fusionar `chore/hackathon-coherence` en `main`** (PR y revisión de una persona del equipo).
