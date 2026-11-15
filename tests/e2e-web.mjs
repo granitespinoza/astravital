@@ -68,7 +68,7 @@ try {
   if (!url) { server = await staticServer(); url = `http://127.0.0.1:${server.address().port}${projectPath}`; }
   const origin = new URL(url).origin;
   // Screenshot runs use software WebGL so the anatomy renders; normal runs keep the GPU off.
-  const graphics = process.env.GROUND_SCREENSHOT_PATH || process.env.BODY_SCREENSHOT_PATH ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--disable-gpu'];
+  const graphics = process.env.GROUND_SCREENSHOT_PATH || process.env.BODY_SCREENSHOT_PATH || process.env.FOCUS_SCREENSHOT_PATH ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--disable-gpu'];
   browser = spawn(browserPath, ['--headless=new', ...graphics, '--disable-background-networking', '--no-first-run',
     '--no-default-browser-check', '--remote-debugging-port=0', '--user-data-dir=' + profile, '--window-size=1440,900',
     'about:blank'], {stdio: 'ignore', windowsHide: true});
@@ -96,8 +96,12 @@ try {
   const page = (method, params) => call(method, params, session);
   await page('Runtime.enable'); await page('Network.enable'); await page('Page.enable');
   // A stand-in for the browser's speech recogniser: it "hears" one sentence, so the voice path can be tested.
-  await page('Page.addScriptToEvaluateOnNewDocument', {source:`window.SpeechRecognition = window.webkitSpeechRecognition = class {
-    start() { setTimeout(() => { this.onresult?.({results:[[{transcript:'How is my heart?'}]]}); this.onend?.(); }, 80); }
+  // First it hears a question WITHOUT the wake phrase (must be ignored), then "OK Astra, …" (must be answered).
+  await page('Page.addScriptToEvaluateOnNewDocument', {source:`window.__heard = 0; window.SpeechRecognition = window.webkitSpeechRecognition = class {
+    start() { if (window.__heard++) return; setTimeout(() => {
+      this.onresult?.({resultIndex:0, results:[[{transcript:'How are my bones?'}]]});
+      setTimeout(() => this.onresult?.({resultIndex:1, results:[[{transcript:'How are my bones?'}],[{transcript:'OK Astra, how is my heart?'}]]}), 120);
+    }, 80); }
     stop() { this.onend?.(); } };`});
   // E2E_DATE=2027-01-26 runs every page with a shifted clock, to prove the demo does not expire.
   if (process.env.E2E_DATE) {
@@ -118,11 +122,17 @@ try {
   if (process.env.E2E_DATE) check('page clock runs at ' + process.env.E2E_DATE, (await js('new Date().toISOString()')).startsWith(process.env.E2E_DATE));
   check('voice button is ready when the browser offers speech recognition', await js(`!document.getElementById('mic-button').disabled && document.getElementById('mic-button').textContent.includes('Talk to Astra')`));
   check('typing box is open in the web demo', await js(`document.querySelector('.text-input').open === true`));
+  check('the lens tells the wearer to say “OK Astra”', await js(`document.getElementById('lens-voice').textContent.includes('OK Astra')`));
   check('intro is ready', await js(`document.querySelector('.visual').dataset.intro === 'ready'`));
 
   await js(`document.getElementById('enter-lenses').click()`);
   await untilPage(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens transition', 8000);
   check('lens transition reaches the wearer view', true);
+  if (process.env.FOCUS_SCREENSHOT_PATH) {
+    await delay(1500);
+    const {data} = await page('Page.captureScreenshot', {format:'png', fromSurface:true});
+    await writeFile(process.env.FOCUS_SCREENSHOT_PATH, Buffer.from(data, 'base64'));
+  }
 
   await js(`document.getElementById('message').value='How is my pulse?'; document.getElementById('message-form').requestSubmit(); true`);
   await untilPage(async () => (await astra()).includes('heart reading'), 'pulse answer');
@@ -174,10 +184,13 @@ try {
   await untilPage(async () => (await astra()).includes('cannot diagnose'), 'diagnosis decline');
   check('asked for a diagnosis, Astra declines in the conversation', (await astra()).includes('onboard medical officer'));
   await js(`document.getElementById('mic-button').click(); true`);
-  await untilPage(() => js(`document.getElementById('transcript').textContent.includes('How is my heart?')`), 'voice transcript');
+  await untilPage(() => js(`document.getElementById('transcript').textContent.includes('OK Astra, how is my heart?')`), 'voice transcript');
   await untilPage(async () => !(await astra()).includes('cannot diagnose'), 'voice answer');
-  check('a spoken question is transcribed and answered by Astra', await js(`document.getElementById('domain-heart').getAttribute('aria-pressed') === 'true' &&
-    document.getElementById('mic-button').getAttribute('aria-pressed') === 'false'`), await astra());
+  check('without “OK Astra” a spoken question is ignored; with it Astra answers', await js(`document.getElementById('domain-heart').getAttribute('aria-pressed') === 'true' &&
+    document.getElementById('mic-button').getAttribute('aria-pressed') === 'true'`), await astra());
+  await js(`document.getElementById('mic-button').click(); true`);
+  await untilPage(() => js(`document.getElementById('mic-button').getAttribute('aria-pressed') === 'false'`), 'microphone off');
+  check('tapping again stops listening and the lens shows the prompt again', await js(`document.getElementById('lens-voice').dataset.state === 'idle'`));
 
   const externalRequests = () => [...requests].filter(request => {
     const target = new URL(request);
