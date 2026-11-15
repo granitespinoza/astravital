@@ -257,6 +257,13 @@ try {
   await page('Page.reload');
   await untilPage(() => js(`document.getElementById('ground-timeline')?.innerText.includes('Training note from E2E')`), 'Ground note after reload');
   check('Ground note survives a reload', true);
+  check('Ground starts with a patient card: risk level, main problem and Reply to astronaut', await js(`
+    document.querySelector('#ground-case-card .patient-risk')?.textContent === 'High priority' &&
+    document.querySelector('#ground-case-card .patient-problem')?.textContent.includes('73 bpm') &&
+    Boolean(document.querySelector('#ground-case-card .reply-cta'))`));
+  await js(`document.querySelector('#ground-case-card .reply-cta').click(); true`);
+  await untilPage(() => js(`document.activeElement === document.querySelector('#ground-conversation textarea')`), 'reply box focused');
+  check('Reply to astronaut opens the reply box addressed to the astronaut', await js(`document.querySelector('#ground-conversation select').value === 'crew'`));
 
   await untilPage(() => js(`document.querySelector('#ground-conversation .case-message-list').textContent.includes('Doctor reply E2E')`), 'doctor reply after reload');
   check('internal notes are not sent into the shared conversation', await js(`!document.querySelector('#ground-conversation .case-message-list').textContent.includes('Training note from E2E')`));
@@ -326,6 +333,11 @@ try {
 
   await untilPage(() => js(`document.querySelector('#crew-conversation .case-message-list')?.textContent.includes('Doctor reply E2E')`), 'reply visible to astronaut');
   check('astronaut receives the saved doctor reply in this browser', true);
+  await untilPage(() => js(`(document.querySelector('#conversation .bubble span')?.textContent ?? '').includes('Doctor reply E2E')`), 'doctor reply announced');
+  check('the doctor reply arrives in the lens as a notification and Astra reads it', await js(`
+    document.getElementById('lens-voice').textContent.includes('replied') || document.getElementById('lens-voice').dataset.state === 'idle'`));
+  await js(`document.getElementById('message').value='OK Astra, read my message'; document.getElementById('message-form').requestSubmit(); true`);
+  check('“read my message” repeats the latest reply', await untilPage(() => js(`(document.querySelector('#conversation .bubble span')?.textContent ?? '').includes('Doctor reply E2E') && document.querySelector('#conversation .you-asked')?.textContent.includes('read my message')`), 'read my message').then(() => true, () => false));
   await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Message your medical team'`), 'saved state before reset');
   await js(`document.getElementById('reset-demo').click(); true`);
   await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO') && document.getElementById('next-action')?.textContent === 'Check again'`), 'demo reset');

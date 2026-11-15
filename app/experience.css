@@ -63,3 +63,8 @@ body[data-web-demo=true] a[href="/api/reviews"],body[data-web-demo=true] a[href=
 .bubble.fresh{animation:reply-in .9s ease}
 @keyframes reply-in{0%{background:rgba(144,220,217,.16);box-shadow:0 0 0 6px rgba(144,220,217,.16)}100%{background:transparent;box-shadow:0 0 0 0 transparent}}
 @media(prefers-reduced-motion:reduce){.bubble.fresh{animation:none}}
+/* AI assistance: Anthropic Claude. Notification state in the lens; replies reveal like typing (visual only). */
+.lens-voice[data-state=notice]{color:var(--lime);animation:breathe 1.4s ease-in-out 3}
+.bubble.fresh>span{animation:type-in .7s steps(28,end)}
+@keyframes type-in{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@media(prefers-reduced-motion:reduce){.bubble.fresh>span{animation:none}}
