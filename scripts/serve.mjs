@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 const assets = new URL('../app/', import.meta.url);
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
-  '.woff2': 'font/woff2', '.wav': 'audio/wav' };
+  '.woff2': 'font/woff2', '.wav': 'audio/wav', '.webp': 'image/webp', '.png': 'image/png' };
 
 export async function startServer(port = 0) {
   const server = createServer(async (request, response) => {

@@ -203,7 +203,7 @@ Latest local run (2026-11-15, macOS, Node 22.23.2): **71 tests, 69 passed, 0 fai
 
 ## Use of AI (SI disclosure)
 
-The team defined the ASTRAVITAL concept and its scope. **OpenAI Codex** and **Anthropic Claude** assisted with code, tests, synthetic scenarios, research, source verification and documentation. No AI generates health answers at runtime (see above). Speech recognition (whisper.cpp) and the optional neural voice (Kokoro) are pretrained local models; packaged interface audio cues were synthesized locally. No AI-generated images or video are used. Full record: [docs/SI-USAGE.md](docs/SI-USAGE.md).
+The team defined the ASTRAVITAL concept and its scope. **OpenAI Codex** and **Anthropic Claude** assisted with code, tests, synthetic scenarios, research, source verification and documentation. No AI generates health answers at runtime (see above). Speech recognition (whisper.cpp) and the optional neural voice (Kokoro) are pretrained local models; packaged interface audio cues were synthesized locally. Five illustrations (three anatomy views in the app, two concept images) were generated with ChatGPT (OpenAI image generation) and carry a visible "AI-generated image" watermark; they are illustrative only and do not represent astronaut measurements, diagnoses or mission telemetry, and all values, status colours and alerts are rendered by the application. No AI-generated video is used. Full record: [docs/SI-USAGE.md](docs/SI-USAGE.md).
 
 ## Credits and license
 

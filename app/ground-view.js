@@ -28,14 +28,15 @@ function facts(entries) {
   return list;
 }
 
-function chip(state) {
+function chip(state, label) {
   const {level} = healthStatus(state);
   const element = node('span','','status-chip');
   const bars = node('span','','level-bars');
   bars.setAttribute('aria-hidden','true');
   bars.append(node('i'),node('i'),node('i'));
   element.dataset.level = level;
-  element.append(node('strong',healthStatusText(state)),bars);
+  const {icon, code} = healthStatus(state);
+  element.append(node('strong',label ? `${icon} ${code} · ${label}` : healthStatusText(state)),bars);
   return element;
 }
 
@@ -98,6 +99,57 @@ function trendPanel(member, baseline) {
   return box;
 }
 
+// AI assistance: Anthropic Claude. Status shown on the anatomy comes from the data, never from the image colours.
+function heartState(member, webDemo) {
+  if (!member) return 'missing';
+  const old = !webDemo && member.receivedAt && Date.now() - Date.parse(member.receivedAt) > settings.staleMs;
+  return old ? 'stale' : member.decision.level ?? member.decision.quality;
+}
+
+// Bone wording follows the glasses: a DXA change is worth a review; it cannot be re-checked like the heart reading.
+function boneLabel(state, bone) {
+  if (!bone) return 'No scan in this simulation';
+  return {ok:'Within reference', watch:'Worth a review'}[state] ?? 'More data needed';
+}
+
+function boneState(bone) {
+  if (!bone) return 'missing';
+  const {comparable, significance} = bone.decision;
+  return !comparable || significance === 'not-established' ? 'missing' : significance === 'exceeds-measurement-lsc' ? 'watch' : 'ok';
+}
+
+// The images are AI-generated illustrations (watermarked); markers are drawn by code from the selected report.
+function anatomyStage(onZone) {
+  const stage = node('div','','anatomy-stage');
+  const image = (layer, src, alt, css) => {
+    const img = document.createElement('img');
+    Object.assign(img, {src, alt, className:css, decoding:'async', draggable:false});
+    img.dataset.layer = layer;
+    return img;
+  };
+  const figure = node('div','','anatomy-figure');
+  figure.append(image('body','./anatomy-body.webp','Illustrative full-body anatomy with the heart and left hip highlighted. AI-generated image.','anatomy-body'));
+  for (const [zone, x, y] of [['heart',53.5,26],['bone',55.8,44.3]]) {
+    const marker = document.createElement('button');
+    marker.type = 'button';
+    marker.className = 'anatomy-marker';
+    marker.dataset.zone = zone;
+    marker.dataset.level = 'unknown';
+    marker.style.left = x + '%';
+    marker.style.top = y + '%';
+    marker.append(node('span','','anatomy-ring'),node('span',zone === 'heart' ? 'Heart' : 'Left hip','anatomy-tag'));
+    marker.onclick = () => onZone(zone === 'heart' ? 'cardiovascular' : 'bone');
+    figure.append(marker);
+  }
+  stage.append(figure,
+    image('heart','./anatomy-heart.webp','Illustrative heart anatomy. AI-generated image.','anatomy-closeup'),
+    image('bone','./anatomy-left-hip.webp','Illustrative pelvis and left femur. AI-generated image.','anatomy-closeup'),
+    node('p','','anatomy-status'),
+    node('span','AI-generated image · ChatGPT (OpenAI)','ai-badge'));
+  stage.querySelector('.anatomy-status').setAttribute('aria-live','polite');
+  return stage;
+}
+
 function bonePanel(bone) {
   const panel = byId('ground-bone');
   if (!bone) {
@@ -106,8 +158,8 @@ function bonePanel(bone) {
     return;
   }
   const {current, baseline, comparable, percentChange, lscPercent, message, reasons, significance} = bone.decision;
-  const state = !comparable || significance === 'not-established' ? 'missing' : significance === 'exceeds-measurement-lsc' ? 'watch' : 'ok';
-  panel.replaceChildren(chip(state));
+  const state = boneState(bone);
+  panel.replaceChildren(chip(state,boneLabel(state,bone)));
   if (current) panel.append(metric(number(current.value,2),'g/cm²'));
   panel.append(facts([
     ['Region',humanize(current?.region)],
@@ -154,18 +206,38 @@ export function createGroundView({perform, prepareRequestId}) {
   let report, member, scene, webDemo, busy = false, retry;
   let domain = new URLSearchParams(location.search).get('domain') === 'bone' ? 'bone' : 'cardiovascular';
 
+  const closeupScale = {2.5:1, 4:1.35, 6:1.7};
+
+  function updateAnatomy() {
+    // Overview at 1×; close-up of the selected region when magnified.
+    surface.dataset.view = zoomIndex === 0 ? 'body' : domain === 'bone' ? 'bone' : 'heart';
+    const states = {heart:heartState(member,webDemo), bone:boneState(member?.bone)};
+    for (const marker of surface.querySelectorAll('.anatomy-marker')) {
+      const zone = marker.dataset.zone, status = healthStatus(states[zone]);
+      const name = zone === 'heart' ? 'Heart' : 'Left hip';
+      const label = zone === 'bone' ? boneLabel(states.bone,member?.bone) : status.label;
+      marker.dataset.level = status.level;
+      marker.querySelector('.anatomy-tag').textContent = name + ' · ' + label;
+      marker.setAttribute('aria-label',name + ': ' + label + '. Show details.');
+    }
+    const line = surface.querySelector('.anatomy-status');
+    if (!line) return;
+    const focus = domain === 'bone' ? 'bone' : 'heart';
+    line.dataset.level = healthStatus(states[focus]).level;
+    const {icon, code} = healthStatus(states[focus]);
+    line.textContent = focus === 'heart' ? '♥ Heart · ' + healthStatusText(states.heart) : `◇ Left hip · ${icon} ${code} · ${boneLabel(states.bone,member?.bone)}`;
+  }
+
   function zoomTo(index) {
-    if (byId('ground-zoom').hidden) return;
     zoomIndex = Math.max(0,Math.min(index,zoomSteps.length-1));
-    // The projected zoom anchor tracks the front view of the selected region.
-    scene.setMode('body');
-    scene.setDomain(domain);
     const zoom = zoomSteps[zoomIndex];
     surface.dataset.zoom = String(zoom);
+    surface.style.setProperty('--closeup-scale',String(closeupScale[zoom] ?? 1));
     byId('ground-zoom-level').textContent = zoom + '×';
     byId('ground-zoom-out').disabled = zoomIndex === 0;
     byId('ground-zoom-reset').disabled = zoomIndex === 0;
     byId('ground-zoom-in').disabled = zoomIndex === zoomSteps.length-1;
+    updateAnatomy();
   }
 
   function selectDomain(next, focus = false) {
@@ -176,8 +248,8 @@ export function createGroundView({perform, prepareRequestId}) {
     byId('ground-bone-button').setAttribute('aria-pressed',String(!showHeart));
     byId('ground-heart-panel').hidden = !showHeart;
     byId('ground-bone-panel').hidden = showHeart;
-    scene?.setDomain(domain);
     if (focus) zoomTo(Math.max(1,zoomIndex));
+    else updateAnatomy();
   }
 
   function controls() {
@@ -212,6 +284,7 @@ export function createGroundView({perform, prepareRequestId}) {
       evidencePanel(null);
       timeline.replaceChildren(node('li','No received reports.','mission-hint'));
     }
+    updateAnatomy();
     controls();
   }
 
@@ -257,14 +330,12 @@ export function createGroundView({perform, prepareRequestId}) {
   ack.onclick = () => void save('acknowledge');
   consult.onclick = () => void save('teleconsult');
   byId('ground-action-form').onsubmit = event => { event.preventDefault(); void save('note'); };
+  surface.replaceChildren(anatomyStage(next => selectDomain(next,true)));
+  byId('ground-zoom').hidden = false;
   selectDomain(domain);
-  void import('./view3d.bundle.js?v=13').then(({createScene}) => {
-    scene = createScene(surface,{onDomain:next => selectDomain(next,true)});
-    scene.setMode('body');
-    scene.setDomain(domain);
-    byId('ground-zoom').hidden = !surface.querySelector('canvas');
-    zoomTo(domain === 'bone' ? 1 : 0);
-  }).catch(() => surface.replaceChildren(node('div','3D unavailable. Use the Heart and Bones buttons.','scene-fallback')))
+  zoomTo(domain === 'bone' ? 1 : 0);
+  surface.querySelector('.anatomy-body').decode()
+    .catch(() => surface.replaceChildren(node('div','Anatomy illustration unavailable. Use the Heart and Bones buttons.','scene-fallback')))
     .finally(() => surface.removeAttribute('aria-busy'));
 
   return {

@@ -44,7 +44,7 @@ https://github.com/granitespinoza/astravital (live web demo, no install: https:/
 
 ## Use of Super Intelligence (SI)
 
-Yes. The team defined the concept and scope. OpenAI Codex and Anthropic Claude assisted with code, tests, synthetic data scenarios, research, source verification and documentation; the repository records where (docs/SI-USAGE.md). At runtime no generative AI produces health answers: Astra uses deterministic rules over validated data. Speech recognition (whisper.cpp) and the optional voice (Kokoro) are pretrained models that run locally; packaged interface audio cues were synthesized locally and are acknowledged in the repository. No AI-generated images or video are used, and no NASA branding is used.
+Yes. The team defined the concept and scope. OpenAI Codex and Anthropic Claude assisted with code, tests, synthetic data scenarios, research, source verification and documentation; the repository records where (docs/SI-USAGE.md). At runtime no generative AI produces health answers: Astra uses deterministic rules over validated data. Speech recognition (whisper.cpp) and the optional voice (Kokoro) are pretrained models that run locally; packaged interface audio cues were synthesized locally and are acknowledged in the repository. Five illustrations (three anatomy views in the app, two concept images) were generated with ChatGPT (OpenAI image generation) and carry a visible "AI-generated image" watermark; they are illustrative only and do not represent astronaut measurements, diagnoses or mission telemetry, and all values, status colours and alerts are rendered by the application. No AI-generated video is used, and no NASA branding is used.
 
 ## NASA Data
 

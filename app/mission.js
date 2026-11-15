@@ -166,7 +166,7 @@ async function refresh() {
       }
     }
     if (view === 'ground' && !ground) {
-      groundModule ??= import('./ground-view.js?v=15');
+      groundModule ??= import('./ground-view.js?v=17');
       const {createGroundView} = await groundModule;
       if (view !== active) return;
       ground = createGroundView({prepareRequestId:requestId, perform:async draft => {
