@@ -7,7 +7,8 @@ import {createDatabase} from '../server/database.mjs';
 import {ORIGIN} from '../app/scenarios.js';
 import {SOL} from '../app/engine.js';
 
-const db = createDatabase({path: ':memory:', seed: 142});
+// Fixed simulation clock so repeated builds export identical bytes.
+const db = createDatabase({path: ':memory:', seed: 142, clock: () => Date.UTC(2026, 10, 14, 7, 30)});
 const base = {cardiovascular: db.getState('cardiovascular'), bone: db.getState('bone')};
 const {seed, counts} = db.getEvidence();
 const performed = db.repeatReading({scenario: base.cardiovascular.scenario}).state;

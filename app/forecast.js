@@ -2,8 +2,19 @@
 // Experimental trend forecast for resting heart rate (Gold consumer, read-only).
 // Damped-trend Holt exponential smoothing: it updates level and trend with every new sol,
 // so the estimate adapts to the person's own record. Not a diagnosis; evaluated only on synthetic data.
-export const FORECAST_MODEL = 'Holt trend forecast v0.1 (experimental)';
+export const FORECAST_MODEL = 'Damped-trend Holt forecast v0.1 (experimental)';
 export const MIN_HISTORY = 7;
+
+// One value per sol: the latest usable reading of each sol, in time order (a repeat check replaces
+// the earlier reading of the same sol), so "sol +1" always means the next sol.
+export function dailySeries(points, solMs) {
+  const bySol = new Map();
+  for (const point of [...points].sort((a, b) => a.observedAt - b.observedAt)) {
+    if (!Number.isFinite(point?.value) || !Number.isFinite(point?.observedAt) || (point.quality ?? 'ok') !== 'ok') continue;
+    bySol.set(Math.floor(point.observedAt / solMs), point.value);
+  }
+  return [...bySol.entries()].sort((a, b) => a[0] - b[0]).map(([, value]) => value);
+}
 
 export function holt(values, {alpha = 0.5, beta = 0.03, phi = 0.9} = {}) {
   if (values.length < 2) return null;

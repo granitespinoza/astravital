@@ -58,7 +58,9 @@ try {
   let url = process.env.E2E_URL;
   if (!url) { server = await staticServer(); url = `http://127.0.0.1:${server.address().port}${projectPath}`; }
   const origin = new URL(url).origin;
-  browser = spawn(browserPath, ['--headless=new', '--disable-gpu', '--disable-background-networking', '--no-first-run',
+  // Screenshot runs use software WebGL so the anatomy renders; normal runs keep the GPU off.
+  const graphics = process.env.GROUND_SCREENSHOT_PATH ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--disable-gpu'];
+  browser = spawn(browserPath, ['--headless=new', ...graphics, '--disable-background-networking', '--no-first-run',
     '--no-default-browser-check', '--remote-debugging-port=0', '--user-data-dir=' + profile, '--window-size=1440,900',
     'about:blank'], {stdio: 'ignore', windowsHide: true});
   let startupError;
@@ -104,7 +106,7 @@ try {
 
   await js(`document.getElementById('next-action').click(); true`);
   await until(async () => (await astra()).includes('Check repeated'), 'repeat answer');
-  check('Check again repeats with the original reference', true);
+  check('Check again repeats with the original reference', await js(`document.getElementById('state-copy').textContent.includes('original reference')`));
   await js(`document.getElementById('next-action').click(); true`);
   await until(() => js(`!document.getElementById('confirmation').hidden`), 'confirmation');
   check('Prepare review asks for a separate confirmation', true);
@@ -118,6 +120,7 @@ try {
 
   await js(`document.getElementById('show-body').click(); true`);
   check('body context view opens', await js(`document.getElementById('show-body').getAttribute('aria-pressed') === 'true'`));
+  check('glasses never show the experimental forecast to the crew', !(await js(`document.body.innerText.toLowerCase().includes('forecast')`)));
 
   const externalRequests = () => [...requests].filter(request => {
     const target = new URL(request);
@@ -153,6 +156,12 @@ try {
   check('Ground displays the prioritized inbox and crew timeline', await js(`
     /ALERT/i.test(document.getElementById('ground-inbox').innerText) &&
     document.getElementById('ground-timeline').children.length > 0`));
+  const groundHeart = await js(`document.getElementById('ground-heart').innerText`);
+  check('Ground shows the experimental forecast for the doctor only', groundHeart.includes('Trend forecast · experimental') &&
+    /Sol \+1\s*[\d.]+ bpm \(80%/.test(groundHeart) && groundHeart.includes('flight surgeon only'));
+  check('Ground forecast uses one value per sol', groundHeart.includes('14 sols of history'));
+  check('Ground inbox marks OK rows as within reference', await js(`[...document.querySelectorAll('#ground-inbox .mission-status')]
+    .some(status => status.dataset.level === 'stable' && status.textContent.startsWith('✓ OK'))`));
   await js(`document.getElementById('ground-note').value = 'Training note from E2E';
     document.getElementById('ground-action-form').requestSubmit(); true`);
   await until(() => js(`document.getElementById('ground-timeline').innerText.includes('Training note from E2E')`), 'Ground note saved');
@@ -163,7 +172,9 @@ try {
     await until(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),
       'Ground anatomy');
     await js(`document.fonts.ready.then(() => true)`);
-    const {data} = await page('Page.captureScreenshot', {format:'png', fromSurface:true});
+    await delay(1500);
+    const {data} = await page('Page.captureScreenshot', {format:'png', fromSurface:true, captureBeyondViewport:true,
+      clip:{x:0, y:0, width:1440, height:1260, scale:1}});
     await writeFile(process.env.GROUND_SCREENSHOT_PATH, Buffer.from(data, 'base64'));
   }
 

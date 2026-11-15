@@ -42,9 +42,9 @@ export function buildGround(reports, actions = []) {
     const {level, quality, z} = member.decision;
     const confirmed = level === 'alert' && member.confirmedAlert;
     const priority = confirmed ? 'alert' : ['watch','alert'].includes(level) ? 'watch' : 'info';
-    const label = confirmed ? 'Confirmed ALERT' : level === 'alert' ? 'ALERT · pending confirmation' : healthStatus(level ?? quality).code;
+    const label = confirmed ? 'Confirmed ALERT' : level === 'alert' ? 'ALERT · awaiting a second ALERT' : healthStatus(level ?? quality).code;
     return {crewId:member.crewId, name:member.name, evidenceId:member.latestEvidenceId,
-      priority, label, z, threshold:heartThreshold(member.decision), acknowledged:member.groundAcknowledged};
+      priority, state:level ?? quality, label, z, threshold:heartThreshold(member.decision), acknowledged:member.groundAcknowledged};
   }).sort((a,b) => ranks[a.priority] - ranks[b.priority]);
   return {reports, crew, inbox};
 }

@@ -1,9 +1,9 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 import {drawHistory} from './chart.js';
-import {policy} from './engine.js';
+import {policy, SOL} from './engine.js';
 import {heartThreshold} from './ground-model.js';
-import {forecast, watchRisk} from './forecast.js';
-import {healthStatus, healthStatusText} from './health-status.js';
+import {dailySeries, forecast, watchRisk} from './forecast.js';
+import {healthStatus, healthStatusText, repeatOutcome} from './health-status.js';
 
 const byId = id => document.getElementById(id);
 const settings = policy();
@@ -59,13 +59,13 @@ function heartPanel(member, webDemo) {
       ['Personal reference',baseline?.n ? `${number(baseline.mean,1)} ± ${number(baseline.sd,1)} bpm (n=${baseline.n})` : 'Unavailable'],
       ['Z-score',number(decision.z,2)],
       ['Report decision threshold',heartThreshold(decision)],
-      ['Repeat confirmed',member.repeated ? 'Yes' : 'No'],
+      ['Deviation persisted on repeat',member.repeated ? 'Yes' : 'No'],
       ['Quality',humanize(decision.quality)],
       ['Source',reading?.source ?? 'Unavailable'],
       ['Observed · simulated clock',displayTime(reading?.observedAt)],
       ['Received onboard',displayTime(member.receivedAt)],
     ]),
-    node('p',decision.reason,'mission-hint'),
+    node('p',repeatOutcome(member) ?? decision.reason,'mission-hint'),
   );
   panel.append(trendPanel(member, baseline));
   const history = member.history ?? (member.recent ?? []).map(point => ({...point,id:point.evidenceId}));
@@ -84,17 +84,17 @@ function heartPanel(member, webDemo) {
 function trendPanel(member, baseline) {
   const box = node('div','','ground-forecast');
   box.append(node('h3','Trend forecast · experimental'));
-  const values = (member.history ?? []).map(point => point.value);
-  if (member.reading?.value != null && member.decision?.quality === 'ok') values.push(member.reading.value);
-  const result = forecast(values,{horizon:3});
+  const points = [...(member.history ?? [])];
+  if (member.reading && !points.some(point => point.id === member.reading.id)) points.push(member.reading);
+  const result = forecast(dailySeries(points,SOL),{horizon:3});
   if (!result.ready) { box.append(node('p',result.reason,'mission-hint')); return box; }
   const risk = watchRisk(result, baseline, settings.watch);
   box.append(facts([
     ...result.points.map(p => [`Sol +${p.h}`,`${number(p.mean,1)} bpm (80%: ${number(p.low,0)}–${number(p.high,0)})`]),
     ['Trend',`${result.trendPerSol >= 0 ? '+' : ''}${number(result.trendPerSol,2)} bpm per sol`],
-    ['Forecast vs WATCH band',risk ? `Whole interval beyond band at sol +${risk.sol}` : 'Not beyond band'],
+    ['Forecast vs personal WATCH band',risk ? `Whole 80% interval beyond the band at sol +${risk.sol}` : 'Not beyond the band'],
   ]));
-  box.append(node('p',`${result.model} · ${result.n} sols. Backtest on synthetic crews: it adapts to the person but does not yet beat the last reading. Context for the flight surgeon only; the decision above still comes from the personal-reference rule.`,'mission-hint'));
+  box.append(node('p',`${result.model} · ${result.n} sols of history, one value per sol. Backtest on synthetic crews: it adapts to the person but does not yet beat the last reading. Context for the flight surgeon only; the decision above still comes from the personal-reference rule.`,'mission-hint'));
   return box;
 }
 
@@ -280,8 +280,9 @@ export function createGroundView({perform, prepareRequestId}) {
       inbox.replaceChildren(...payload.inbox.map(entry => {
         const row = node('li','','ground-row');
         const button = node('button');
-        const status = node('span',`${entry.priority === 'alert' ? '!' : entry.priority === 'watch' ? '△' : '○'} ${entry.label}`,'mission-status');
-        status.dataset.level = {alert:'review',watch:'check',info:'unknown'}[entry.priority];
+        const plain = healthStatus(entry.state);
+        const status = node('span',`${entry.priority === 'alert' ? '!' : entry.priority === 'watch' ? '△' : plain.icon} ${entry.label}`,'mission-status');
+        status.dataset.level = entry.priority === 'alert' ? 'review' : entry.priority === 'watch' ? 'check' : plain.level;
         button.type = 'button';
         button.append(status,node('span',`${entry.name} · ${entry.threshold}${entry.acknowledged ? ' · Acknowledged' : ''}`));
         button.onclick = () => {

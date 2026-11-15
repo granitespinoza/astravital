@@ -155,7 +155,7 @@ The public glasses demo opened and its **Start experience** and **Body context**
 
 ## Experimental trend forecast — 2026-11-15
 
-AI assistance: Anthropic Claude. macOS, Node.js 22, synthetic data only. Model: damped-trend Holt exponential smoothing (`app/forecast.js`), shown only in the Earth doctor view as "Trend forecast · experimental". The heart decision still comes from the personal-reference rule.
+AI assistance: Anthropic Claude. macOS, Node.js 22, synthetic data only. Model: damped-trend Holt exponential smoothing (`app/forecast.js`), shown only in the Earth doctor view as "Trend forecast · experimental". The heart decision still comes from the personal-reference rule. The dashboard feeds the model one value per sol (the latest usable reading of each sol, so a same-sol repeat replaces the first check) and states the number of sols used. Method reference: damped-trend exponential smoothing as described in Hyndman and Athanasopoulos, [*Forecasting: Principles and Practice*, §8.2](https://otexts.com/fpp3/holt.html).
 
 Method (`node scripts/forecast-eval.mjs`): 200 seeded synthetic crews × 180 sols (steady, gradual drift, short acute events). Time-ordered: each sol the model sees only earlier sols and predicts the next one. Compared with the last reading and with the fixed 14-sol personal reference mean.
 
@@ -170,3 +170,17 @@ Method (`node scripts/forecast-eval.mjs`): 200 seeded synthetic crews × 180 sol
 Forecast WATCH warnings on steady crews: 0.016 per crew-day. On drifting crews the current two-reading rule flagged the drift earlier than the forecast (median −16 sols).
 
 **Reading.** The forecast adapts to each person: its error stays flat while a fixed reference degrades to 3.05 bpm. Intervals are close to calibrated. It does **not** yet beat the last reading and gives no earlier warning than the rule. We therefore keep the claim "early warning" and present the forecast as an evaluated experiment, not as prediction. Next step, per [ARQUITECTURA](ARQUITECTURA.md#longitudinal-learning-and-decision-support): real longitudinal data, hidden prospective evaluation, clinician review.
+
+## Integration verification on macOS — 2026-11-15
+
+AI assistance: Anthropic Claude. macOS, Node.js 22.23.2, Chrome 157, synthetic seed 142, after merging the Earth doctor dashboard (PR 7) and the experimental forecast (PR 8). This run resolves the checks that the Windows integration notes above left pending.
+
+| Check | Command | Observed result |
+| --- | --- | --- |
+| Build and full Node suite | `npm run verify` | 70 tests: 68 passed, 0 failed, 2 skipped (opt-in voice model integrations). |
+| Web demo in headless Chrome | `node tests/e2e-web.mjs` | 29/29 checks: glasses journey, saved review after reload, Earth doctor view on the same repeated check, experimental forecast shown to the doctor and never on the glasses, one value per sol, inbox OK rows, Ground note after reload, bone scan, missing scan disclosure, 768 px and 390 px layouts, no external requests, no JavaScript errors. With software WebGL (`GROUND_SCREENSHOT_PATH`), the three anatomy magnification checks also pass and the capture is `docs/media/07-earth-doctor.png`. |
+| Full local app in headless Chrome | `node tests/e2e-local.mjs` (`npm run test:functional`) | 17/17 checks on a real server and a fresh SQLite file in the mission profile: glasses connect locally, Astra answers from the server, a confirmed review is stored once, a paired crew client sends two strong deviations, the CMO sees and acknowledges the ALERT and the saved review, a report waits in the simulated Earth queue, simulated receipt releases it, the doctor inbox puts the confirmed ALERT first, the heart panel shows the persisted deviation and the forecast, the doctor's note is stored in SQLite, and nothing leaves 127.0.0.1. |
+| Earlier glasses simulator | `npm run test:browser` | Passed. |
+| Published site | CI job `e2e` after each GitHub Pages deploy, plus a local run with `E2E_URL` | All checks passed against https://granitespinoza.github.io/astravital/, including the Earth doctor view (the earlier HTTP 404 note predates its deployment). |
+
+Clarifications made in this pass: one UTC time format across the CMO and Ground views; inbox OK rows use the same ✓ status as elsewhere; "Confirmed ALERT" always means two consecutive ALERT readings in the same direction, a single ALERT after a WATCH reads "ALERT · awaiting a second ALERT", and the panels say "Deviation persisted on repeat" instead of suggesting another repeat; `npm run test:functional` now runs the full local app check (the script it named did not exist). The laptop-with-physical-phone test over Wi-Fi remains unverified.

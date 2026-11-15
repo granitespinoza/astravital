@@ -1,5 +1,5 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
-import {healthStatus, healthStatusText} from './health-status.js';
+import {healthStatus, healthStatusText, repeatOutcome} from './health-status.js';
 
 const byId = id => document.getElementById(id);
 const phoneToken = new URLSearchParams(location.hash.slice(1)).get('crew');
@@ -59,7 +59,7 @@ function persistQueue() {
 }
 
 function formatTime(value) {
-  return new Date(value).toLocaleString('en', {dateStyle:'short',timeStyle:'medium'});
+  return value == null ? 'Unavailable' : new Date(value).toISOString().slice(0,16).replace('T',' ') + ' UTC';
 }
 
 function readingsCard(member, canAcknowledge) {
@@ -70,14 +70,14 @@ function readingsCard(member, canAcknowledge) {
   status.dataset.level = healthStatus(key).level;
   const value = member.reading?.value;
   details.append(element('h3',member.name),status,element('p',value === undefined ? 'No sample received' : value + ' bpm','mission-value'),
-    element('p',decision.reason));
+    element('p',repeatOutcome(member) ?? decision.reason));
   if (member.receivedAt) details.append(element('p','Received ' + formatTime(member.receivedAt) + ' · Simulated sol ' + member.missionDay,'mission-hint'));
   if (decision.baseline?.n) {
     const info = document.createElement('details');
     info.append(element('summary','Measurement evidence'),
       element('p',decision.baseline.mean.toFixed(1) + ' bpm personal baseline · ' + decision.baseline.n + ' readings'),
       element('p','Z-score ' + (decision.z?.toFixed(2) ?? '—') + ' · Quality: ' + decision.quality),
-      element('p','Repeat confirmed: ' + (member.repeated ? 'Yes' : 'No')),
+      element('p','Deviation persisted on repeat: ' + (member.repeated ? 'Yes' : 'No')),
       element('p',decision.rule),element('p',member.latestEvidenceId));
     if (member.recent.length > 1) info.append(element('p','Recent received samples (bpm): ' + member.recent.map(item=>item.value).join(', ')));
     details.append(info);
@@ -166,7 +166,7 @@ async function refresh() {
       }
     }
     if (view === 'ground' && !ground) {
-      groundModule ??= import('./ground-view.js?v=14');
+      groundModule ??= import('./ground-view.js?v=15');
       const {createGroundView} = await groundModule;
       if (view !== active) return;
       ground = createGroundView({prepareRequestId:requestId, perform:async draft => {
@@ -246,7 +246,7 @@ async function initStaff() {
   }
   if (!modeReady) {
     try {
-      const {createMissionDemo} = await import('./mission-demo.js?v=13');
+      const {createMissionDemo} = await import('./mission-demo.js?v=15');
       demo = await createMissionDemo({caseId:new URLSearchParams(location.search).get('case')});
       modeReady = true;
     } catch {
