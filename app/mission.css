@@ -130,3 +130,20 @@
 .anatomy-status { position: absolute; left: .7rem; top: .6rem; margin: 0; z-index: 2; padding: .25rem .7rem; font-size: .74rem; font-weight: 700;
   color: var(--state, var(--cyan)); background: #05090ad9; border: 1px solid var(--border); border-radius: 999px; }
 .anatomy-stage .ai-badge { position: absolute; right: .7rem; bottom: .55rem; z-index: 2; }
+/* AI assistance: Anthropic Claude. Space by priority: patient card + reply first, bigger type, important content first on small screens. */
+.mission[data-view="ground"] { font-size: 1.04rem; }
+#ground-case-card { display: grid; grid-template-columns: minmax(0,1fr) minmax(220px,300px); gap: 1rem 1.6rem; align-items: start; }
+#ground-case-card .case-identity { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; justify-content: space-between; }
+#ground-case-card h2 { font: 700 clamp(1.3rem,2vw,1.7rem) Fira,sans-serif; margin: .2rem 0; }
+.patient-risk { padding: .35rem .85rem; border-radius: 999px; font-weight: 700; font-size: .9rem; color: #05100d; background: var(--state, var(--cyan)); }
+.patient-problem { margin: .7rem 0 .3rem; font-size: clamp(1.05rem,1.5vw,1.3rem); font-weight: 700; color: var(--strong); line-height: 1.35; }
+.patient-cta { display: grid; gap: .5rem; align-content: start; }
+.reply-cta { min-height: 52px; font-size: 1rem; font-weight: 700; color: #05100d; background: var(--lime); border-color: var(--lime); border-radius: 10px; }
+.reply-cta:hover:not(:disabled) { background: var(--lime); filter: brightness(.92); }
+#ground-scene { min-height: clamp(320px,40vw,600px); }
+.ground-grid { gap: 1.2rem; }
+@media (max-width: 760px) {
+  #ground-case-card { grid-template-columns: minmax(0,1fr); }
+  .ground-grid > .ground-detail { order: -1; }
+  #ground-scene { min-height: 300px; }
+}

@@ -7,10 +7,10 @@
   <meta name="theme-color" content="#030405">
   <title>ASTRAVITAL · Mission console</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./experience.css?v=21">
-  <link rel="stylesheet" href="./mission.css?v=18">
+  <link rel="stylesheet" href="./experience.css?v=22">
+  <link rel="stylesheet" href="./mission.css?v=19">
   <link rel="stylesheet" href="./case-thread.css?v=3">
-  <script type="module" src="./mission.js?v=18"></script>
+  <script type="module" src="./mission.js?v=19"></script>
 </head>
 <body>
   <header class="mission-header">
@@ -113,10 +113,6 @@
           <ul id="ground-timeline" class="ground-list"></ul>
         </section>
         <section class="mission-panel">
-          <h2>Evidence</h2>
-          <div id="ground-evidence"></div>
-        </section>
-        <section class="mission-panel">
           <h2>Flight surgeon actions</h2>
           <form id="ground-action-form">
             <label for="ground-note">Internal review note · not sent to the astronaut</label>
@@ -129,6 +125,10 @@
           </form>
           <p class="mission-hint">Actions are saved locally. A simulated teleconsult request does not contact anyone.</p>
           <p id="ground-action-result" role="status" class="mission-feedback"></p>
+        </section>
+        <section class="mission-panel">
+          <h2>Evidence</h2>
+          <div id="ground-evidence"></div>
         </section>
       </div>
       <section class="mission-panel">

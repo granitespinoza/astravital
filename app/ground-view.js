@@ -202,12 +202,12 @@ export function createGroundView({perform, prepareRequestId,onCase = () => {}}) 
   const feedback = byId('ground-action-result');
   const sharedCase = byId('ground-shared-case');
   const surface = byId('ground-scene');
-  const zoomSteps = [1,2.5,4,6];
+  const zoomSteps = [1,2.5,4];
   let zoomIndex = 0;
   let report, member, scene, webDemo, busy = false, retry;
   let domain = new URLSearchParams(location.search).get('domain') === 'bone' ? 'bone' : 'cardiovascular';
 
-  const closeupScale = {2.5:1, 4:1.35, 6:1.7};
+  const closeupScale = {2.5:1, 4:1.4};
 
   function updateAnatomy() {
     // Overview at 1×; close-up of the selected region when magnified.
@@ -269,9 +269,21 @@ export function createGroundView({perform, prepareRequestId,onCase = () => {}}) 
     const timeline = byId('ground-timeline');
     if (member) {
       const overview=byId('ground-case-card');
+      // AI assistance: Anthropic Claude. Patient card first: risk level, main problem and the reply action, by priority.
+      const states={heart:heartState(member,webDemo),bone:boneState(member.bone)};
+      const rank={review:3,check:2,unknown:1,stable:0};
+      const heartLevel=healthStatus(states.heart).level, boneLevel=healthStatus(states.bone).level;
+      const worst=rank[heartLevel]>=rank[boneLevel]?heartLevel:boneLevel;
+      const risk=node('span',{review:'High priority',check:'Needs review',unknown:'Incomplete data',stable:'Stable'}[worst],'patient-risk');risk.dataset.level=worst;
+      const problem=node('p',rank[heartLevel]>=rank[boneLevel]
+        ? `Resting heart rate ${member.reading?.value ?? '—'} bpm · z ${number(member.decision.z,2)} against a personal reference of ${number(member.decision.baseline?.mean,1)} bpm${member.repeated ? ' · persisted on repeat' : ''}`
+        : `Left hip bone density · ${boneLabel(states.bone,member.bone)}`,'patient-problem');
+      const reply=node('button','Reply to astronaut ↓','reply-cta');reply.type='button';
+      reply.onclick=()=>{const host=byId('ground-conversation');host.scrollIntoView({behavior:'smooth',block:'start'});const to=host.querySelector('select');if(to&&[...to.options].some(o=>o.value==='crew')){to.value='crew';to.dispatchEvent(new Event('change',{bubbles:true}));}setTimeout(()=>host.querySelector('textarea')?.focus({preventScroll:true}),450);};
+      const cta=node('div','','patient-cta');cta.append(reply,node('p','Your reply reaches the astronaut’s glasses as a notification, and Astra reads it aloud.','mission-hint'));
       const identity=node('div','','case-identity');
-      const who=node('div');who.append(node('p','CREW CASE · SIMULATED DATA','eyebrow'),node('h2',member.name));
-      identity.append(who,node('p',member.crewId+' · Exploration mission simulation','mission-hint'));
+      const who=node('div');who.append(node('p','PATIENT CARD · SIMULATED DATA','eyebrow'),node('h2',member.name+' · '+member.crewId));
+      identity.append(who,risk);
       const summary=facts([
         ['Latest resting check',member.reading?member.reading.value+' bpm':'No usable reading'],
         ['Personal reference',member.decision.baseline?.n?number(member.decision.baseline.mean,1)+' ± '+number(member.decision.baseline.sd,1)+' bpm':'Insufficient evidence'],
@@ -280,8 +292,8 @@ export function createGroundView({perform, prepareRequestId,onCase = () => {}}) 
         ['Heart review',healthStatusText(heartState(member,webDemo))],
         ['Left hip review',boneLabel(boneState(member.bone),member.bone)],
       ]);summary.className='case-overview-grid';
-      overview.replaceChildren(identity,node('p',repeatOutcome(member)??member.decision.reason,'case-next'),summary,
-        node('p','Review the evidence, then record your decision or write to the astronaut. Messages and internal notes are separate.','mission-hint'));
+      const main=node('div','','patient-main');main.append(identity,problem,node('p',repeatOutcome(member)??member.decision.reason,'case-next'),summary);
+      overview.replaceChildren(main,cta);
       onCase(messageContext(member,domain,'ground'));
       heartPanel(member,webDemo);
       bonePanel(member.bone);
