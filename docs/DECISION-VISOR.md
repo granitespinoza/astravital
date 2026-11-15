@@ -1,10 +1,10 @@
 # Decision: glasses first, with a supporting console
 
-AI assistance: OpenAI Codex. 2026-11-15. Inputs: the team's mentor transcript and research commit `113f0c8b20a6e1cc4134e80069483b18ada8a57d`, integrated locally by merge `34d7832`.
+AI assistance: OpenAI Codex. 2026-11-15. Inputs: team discussion and research commit `113f0c8b20a6e1cc4134e80069483b18ada8a57d`, integrated locally by merge `34d7832`.
 
 ## Problem before features
 
-[Evidence: team input] The user needs an astronaut with occupied hands to understand a signal without reading a dashboard. The mentor suggests finishing one signal, then considering bones and an anatomical representation. Speakers are not reliably attributed; this transcript is not a representative-user study or competitor census.
+[Evidence: team input] The user needs an astronaut with occupied hands to understand a signal without reading a dashboard.
 
 [Hypothesis] Our differentiator is **lower attention cost for an understandable personal health signal, a traceable reason and an explicit human decision when Earth cannot respond**. A body picture or voice assistant alone is not a novelty claim. NASA already researches near-eye displays through [Joint AR](https://ntrs.nasa.gov/citations/20230016622) and [SUITS](https://www.nasa.gov/centers-and-facilities/johnson/nasa-challenge-wraps-student-teams-complete-space-suit-challenges/). Do not claim that NASA or every competing team missed this direction.
 

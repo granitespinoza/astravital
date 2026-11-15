@@ -1,3 +1,5 @@
+> Internal team note in Spanish. Not part of the judged submission materials; see README.md.
+
 # Relevo para el equipo — 15 de noviembre de 2026
 
 Documento interno. Para continuar ASTRAVITAL en cualquier máquina. Escrito por Claude al retomar el trabajo de Codex, que se quedó sin uso disponible (se restablece a las 12:09 p. m.).

@@ -34,6 +34,14 @@ ASTRAVITAL helps an astronaut on a lunar station or a Mars base understand two m
 | --- | --- | --- |
 | Local server, database, decision rules, Astra's dialogue, glasses interface, offline browser cache, local speech recognition | Heart-rate and bone measurements (seed 142), the wearable device, the Earth link | Real sensors (for example, a CSA Bio-Monitor adapter), delivery to flight surgeons over delay-tolerant networking, more health domains, clinical validation |
 
+## Screenshots (simulated data)
+
+| Glasses intro | Wearer view and Astra | Body context |
+| --- | --- | --- |
+| ![Glasses intro](docs/media/01-glasses-intro.png) | ![Astra answers about the heart](docs/media/04-astra-heart.png) | ![Heart and left hip zones](docs/media/05-body-context.png) |
+
+**No install?** If no local server is running, the same page runs as a **web demo** in the browser: the identical dialogue rules over seed-142 states exported from the database (parity test: `tests/web-demo.test.js`). After merging to `main` it is published at https://granitespinoza.github.io/astravital/. Voice and the SQLite database run only in the full local app.
+
 ---
 
 ## Try the demo (about 1 minute)
@@ -125,6 +133,7 @@ npm run setup:voice
 npm run demo
 ```
 
+- Rubric self-check: [docs/RUBRIC.md](docs/RUBRIC.md).
 - Open **http://127.0.0.1:4173/** (glasses view) and **http://127.0.0.1:4173/review.html** (supporting review). **http://127.0.0.1:4173/health** reports database, seed and voice readiness.
 - Installation and voice setup need internet once; afterwards the demo runs locally. `setup:voice` downloads and hash-verifies the speech model and needs a `whisper-cli` executable (`npm run setup:voice -- --install-binary` on macOS with Homebrew). Without it, the text controls keep working and the limitation is shown.
 - The SQLite database defaults to `.runtime/demo.sqlite` and is seeded with **seed 142** automatically. `PORT`, `HOST`, `DB_PATH` and `SEED` can be overridden ([.env.example](.env.example)).
@@ -169,4 +178,4 @@ The team defined the ASTRAVITAL concept and its scope. **OpenAI Codex** and **An
 
 ## Credits and license
 
-Third-party components: [three.js](https://threejs.org/) (MIT), esbuild (MIT), whisper.cpp (MIT), kokoro-js and Transformers.js (Apache-2.0), Fira Sans and Overpass fonts (SIL OFL, see [licenses](licenses/)). The repository has no project license selected yet. ASTRAVITAL uses its own name and claims no NASA or CSA endorsement.
+Third-party components: three.js (MIT), esbuild (MIT), whisper.cpp (MIT), kokoro-js and Transformers.js (Apache-2.0), Fira Sans and Overpass fonts (SIL OFL, see [licenses](licenses/)). The repository has no project license selected yet. ASTRAVITAL uses its own name and claims no NASA or CSA endorsement.

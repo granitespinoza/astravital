@@ -1,3 +1,5 @@
+> Internal team note in Spanish. Not part of the judged submission materials; see README.md.
+
 # Prompt para continuar con Codex (equipo presencial)
 
 Para la sesión de Codex que ya está conectada al repositorio.

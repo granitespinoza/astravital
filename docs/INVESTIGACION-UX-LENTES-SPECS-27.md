@@ -1,3 +1,5 @@
+> Internal team note in Spanish. Not part of the judged submission materials; see README.md.
+
 # ASTRAVITAL en Snap SPECS 27
 
 Investigación de experiencia de usuario · 14 de noviembre de 2026 · Hábitat simulado
