@@ -45,7 +45,7 @@ async function untilPage(read, what, ms = 15000) {
 const projectPath = '/astravital/';
 function staticServer() {
   const root = fileURLToPath(new URL('../app/', import.meta.url));
-  const types = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wav': 'audio/wav', '.woff2': 'font/woff2'};
+  const types = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wav': 'audio/wav', '.woff2': 'font/woff2', '.webp': 'image/webp', '.png': 'image/png'};
   const server = createServer(async (req, res) => {
     try {
       const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
@@ -68,7 +68,7 @@ try {
   if (!url) { server = await staticServer(); url = `http://127.0.0.1:${server.address().port}${projectPath}`; }
   const origin = new URL(url).origin;
   // Screenshot runs use software WebGL so the anatomy renders; normal runs keep the GPU off.
-  const graphics = process.env.GROUND_SCREENSHOT_PATH ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--disable-gpu'];
+  const graphics = process.env.GROUND_SCREENSHOT_PATH || process.env.BODY_SCREENSHOT_PATH ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--disable-gpu'];
   browser = spawn(browserPath, ['--headless=new', ...graphics, '--disable-background-networking', '--no-first-run',
     '--no-default-browser-check', '--remote-debugging-port=0', '--user-data-dir=' + profile, '--window-size=1440,900',
     'about:blank'], {stdio: 'ignore', windowsHide: true});
@@ -139,6 +139,19 @@ try {
 
   await js(`document.getElementById('show-body').click(); true`);
   check('body context view opens', await js(`document.getElementById('show-body').getAttribute('aria-pressed') === 'true'`));
+  await untilPage(() => js(`(() => { const img = document.querySelector('#body-art .anatomy-body'); return Boolean(img?.complete && img.naturalWidth); })()`), 'body illustration');
+  check('Body context shows the AI-generated anatomy with its label', await js(`document.getElementById('body-art').getClientRects().length > 0 &&
+    document.querySelector('#body-label small').textContent.includes('AI-generated image')`));
+  check('Body context markers take their status from the data, not the image', await js(`
+    document.querySelector('#body-art .anatomy-marker[data-zone=heart]').dataset.level === document.getElementById('hud-heart').dataset.level &&
+    document.querySelector('#body-art .anatomy-marker[data-zone=bone]').dataset.level === document.getElementById('hud-bone').dataset.level &&
+    document.getElementById('hud-heart').dataset.level !== 'unknown'`));
+  if (process.env.BODY_SCREENSHOT_PATH) {
+    await js(`document.fonts.ready.then(() => true)`);
+    await delay(1200);
+    const {data} = await page('Page.captureScreenshot', {format:'png', fromSurface:true});
+    await writeFile(process.env.BODY_SCREENSHOT_PATH, Buffer.from(data, 'base64'));
+  }
   check('glasses never show the experimental forecast to the crew', !(await js(`document.body.innerText.toLowerCase().includes('forecast')`)));
   await js(`document.getElementById('message').value='Can you diagnose me?'; document.getElementById('message-form').requestSubmit(); true`);
   await untilPage(async () => (await astra()).includes('cannot diagnose'), 'diagnosis decline');
@@ -190,6 +203,14 @@ try {
   await page('Page.reload');
   await untilPage(() => js(`document.getElementById('ground-timeline')?.innerText.includes('Training note from E2E')`), 'Ground note after reload');
   check('Ground note survives a reload', true);
+  await untilPage(() => js(`(() => { const img = document.querySelector('#ground-scene .anatomy-body'); return Boolean(img?.complete && img.naturalWidth) && !document.getElementById('ground-scene').hasAttribute('aria-busy'); })()`), 'Ground illustration');
+  check('Ground shows the AI-generated anatomy with visible labels', await js(`document.getElementById('ground-scene').dataset.view === 'body' &&
+    document.querySelector('#ground-scene .ai-badge').textContent.includes('AI-generated image') &&
+    document.querySelector('.ground-anatomy figcaption').textContent.includes('AI-generated image')`));
+  check('Ground markers take their status from the report, not the image', await js(`
+    document.querySelector('#ground-scene .anatomy-marker[data-zone=heart]').dataset.level === document.querySelector('#ground-heart .status-chip').dataset.level &&
+    document.querySelector('#ground-scene .anatomy-marker[data-zone=bone]').dataset.level === document.querySelector('#ground-bone .status-chip').dataset.level &&
+    document.querySelector('#ground-scene .anatomy-marker[data-zone=heart]').dataset.level === 'review'`));
   if (process.env.GROUND_SCREENSHOT_PATH) {
     await untilPage(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),
       'Ground anatomy');
@@ -205,19 +226,20 @@ try {
     /g\\/cm[²2]/.test(document.getElementById('ground-bone').innerText) &&
     document.getElementById('ground-bone').innerText.includes('DXA')`));
   await untilPage(() => js(`!document.getElementById('ground-scene')?.hasAttribute('aria-busy')`),'Ground anatomy controls');
-  if (await js(`Boolean(document.querySelector('#ground-scene canvas'))`)) {
-    await js(`document.getElementById('ground-heart-button').click();
-      document.getElementById('ground-zoom-in').click(); true`);
-    check('Ground zooms in on the heart',await js(`
-      document.getElementById('ground-scene').dataset.region === 'heart' &&
-      document.getElementById('ground-scene').dataset.zoom === '4'`));
-    await js(`document.getElementById('ground-bone-button').click(); true`);
-    check('Ground follows the left hip with the same magnification',await js(`
-      document.getElementById('ground-scene').dataset.region === 'bone' &&
-      document.getElementById('ground-scene').dataset.zoom === '4'`));
-    await js(`document.getElementById('ground-zoom-reset').click(); true`);
-    check('Full body restores the overview',await js(`document.getElementById('ground-scene').dataset.zoom === '1'`));
-  }
+  await js(`document.getElementById('ground-heart-button').click();
+    document.getElementById('ground-zoom-in').click(); true`);
+  check('Ground zooms in on the heart close-up',await js(`
+    document.getElementById('ground-scene').dataset.region === 'heart' &&
+    document.getElementById('ground-scene').dataset.zoom === '4' && document.getElementById('ground-scene').dataset.view === 'heart' &&
+    document.querySelector('.anatomy-closeup[data-layer=heart]').naturalWidth > 0`));
+  await js(`document.getElementById('ground-bone-button').click(); true`);
+  check('Ground follows the left hip close-up with the same magnification',await js(`
+    document.getElementById('ground-scene').dataset.region === 'bone' &&
+    document.getElementById('ground-scene').dataset.zoom === '4' && document.getElementById('ground-scene').dataset.view === 'bone' &&
+    document.querySelector('.anatomy-closeup[data-layer=bone]').naturalWidth > 0`));
+  await js(`document.getElementById('ground-zoom-reset').click(); true`);
+  check('Full body restores the overview',await js(`document.getElementById('ground-scene').dataset.zoom === '1' &&
+    document.getElementById('ground-scene').dataset.view === 'body'`));
   await js(`(() => {
     const select = document.getElementById('ground-member');
     select.value = 'crew-01';
