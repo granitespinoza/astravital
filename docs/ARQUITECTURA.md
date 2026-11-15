@@ -109,7 +109,11 @@ Browser speech output selects only OS/browser voices flagged `localService: true
 
 ## Longitudinal learning and decision support
 
-[Hypothesis] ASTRAVITAL could adapt to an astronaut's longitudinal record and estimate a future measurement. The executed prototype compares an observed resting heart-rate reading with a personal reference. It freezes that reference through repeat checks. Its bone workflow compares compatible scans against an assumed least significant change. The proposed branch below is an evaluation and release path. It has no runtime component in this increment.
+The executed prototype compares an observed resting heart-rate reading with a personal reference. It freezes that reference through repeat checks. Its bone workflow compares compatible scans against an assumed least significant change.
+
+[Implemented, experimental] The Earth doctor view runs a damped-trend Holt forecast of resting heart rate (`app/forecast.js`) as a read-only consumer of Gold history: three sols ahead, 80% intervals, one value per sol, labeled experimental and shown only to the flight surgeon. It never changes the rule-based decision and never reaches Astra or the crew. Its first time-ordered evaluation on synthetic crews (`scripts/forecast-eval.mjs`, [results](RESULTADOS.md#experimental-trend-forecast--2026-11-15)) shows that it adapts to each person but does not yet beat the last reading, so it has **not** passed the release gate below.
+
+[Proposed] The branch below is the evaluation and release path any forecast must pass before it could inform decisions.
 
 ```mermaid
 flowchart TB

@@ -17,7 +17,7 @@
     "test": "node --test",
     "verify": "npm run build && node --test",
     "test:browser": "node tests/browser.mjs",
-    "test:functional": "node tests/functional-browser.mjs",
+    "test:functional": "node tests/e2e-local.mjs",
     "test:e2e": "node tests/e2e-web.mjs",
     "predemo": "npm run build"
   },

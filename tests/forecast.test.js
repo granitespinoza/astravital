@@ -1,7 +1,7 @@
 // AI assistance: Anthropic Claude. See docs/SI-USAGE.md.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {forecast, watchRisk, MIN_HISTORY} from '../app/forecast.js';
+import {dailySeries, forecast, watchRisk, MIN_HISTORY} from '../app/forecast.js';
 import {evaluate} from '../scripts/forecast-eval.mjs';
 
 test('forecast declines with too little history', () => {
@@ -26,4 +26,12 @@ test('backtest is reproducible and reports the comparison honestly', () => {
   const last = a.curve.at(-1);
   assert.ok(last.maeForecast < last.maeReferenceMean, 'adapts better than a fixed reference');
   assert.ok(last.intervalCoverage80 > 0.7 && last.intervalCoverage80 < 0.95);
+});
+test('daily series keeps one usable value per sol, the latest one', () => {
+  const sol = 1000;
+  const points = [
+    {value:61, observedAt:2500}, {value:60, observedAt:1200}, {value:99, observedAt:1500, quality:'invalid'},
+    {value:68, observedAt:3100}, {value:73, observedAt:3400},
+  ];
+  assert.deepEqual(dailySeries(points, sol), [60, 61, 73]);
 });

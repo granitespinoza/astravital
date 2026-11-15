@@ -12,6 +12,14 @@ export function healthStatus(state) {
   };
 }
 
+// AI assistance: Anthropic Claude. One wording for the repeat outcome in the CMO and Earth doctor views.
+// "Confirmed ALERT" always means two consecutive ALERT readings in the same direction.
+export function repeatOutcome({repeated, confirmedAlert} = {}) {
+  if (confirmedAlert) return 'Confirmed ALERT: two consecutive ALERT readings in the same direction, against the same frozen reference.';
+  if (repeated) return 'The repeat check used the same frozen reference and the deviation persisted in the same direction. A second consecutive ALERT would confirm it.';
+  return null;
+}
+
 export function healthStatusText(state) {
   const {icon, code, label} = healthStatus(state);
   return `${icon} ${code} · ${label}`;

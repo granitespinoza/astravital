@@ -12,6 +12,7 @@ AI assistance: Anthropic Claude, from the code and tests written with OpenAI Cod
 | Heart and bone decisions ([`app/engine.js`](../app/engine.js), [`app/bone.js`](../app/bone.js), [`server/database.mjs`](../server/database.mjs)) | No: versioned rules | Personal baseline, z-score, bone comparison with least significant change | No |
 | Speech recognition ([`scripts/transcribe.mjs`](../scripts/transcribe.mjs), whisper.cpp) | Yes: pretrained local model | Turns the astronaut's speech into text | No: the text is only a question, and it is shown back as *"You said: …"* |
 | Voice output (browser local voices; optional Kokoro, [`scripts/synthesize.mjs`](../scripts/synthesize.mjs)) | Kokoro: pretrained local neural voice | Reads aloud a sentence Astra already produced | No |
+| Experimental trend forecast ([`app/forecast.js`](../app/forecast.js)) | No: deterministic exponential smoothing | Shows the flight surgeon a three-sol resting heart-rate estimate with an 80% interval | No: labeled experimental, shown only in the Earth doctor view, never changes a decision and never reaches Astra or the crew (end-to-end check *glasses never show the experimental forecast to the crew*) |
 
 No cloud AI service is called at runtime.
 

@@ -32,7 +32,7 @@ ASTRAVITAL helps an astronaut on a lunar station or a Mars base understand two m
 
 | Working now | Simulated | Future work |
 | --- | --- | --- |
-| Local server, database, decision rules, Astra's dialogue, glasses interface, offline browser cache, local speech recognition | Heart-rate and bone measurements (seed 142), the wearable device, the Earth link | Real sensors (for example, a CSA Bio-Monitor adapter), delivery to flight surgeons over delay-tolerant networking, more health domains, clinical validation |
+| Local server, database, decision rules, Astra's dialogue, glasses interface, offline browser cache, local speech recognition, onboard CMO console, Earth doctor view, an experimental trend forecast for the doctor | Heart-rate and bone measurements (seed 142), the wearable device, the crew phone client, the Earth link (3–22 minute one-way delay model) | Real sensors (for example, a CSA Bio-Monitor adapter), real delivery to flight surgeons over delay-tolerant networking, more health domains, clinical validation |
 
 ## Screenshots (simulated data)
 
@@ -40,53 +40,67 @@ ASTRAVITAL helps an astronaut on a lunar station or a Mars base understand two m
 | --- | --- | --- |
 | ![Glasses intro](docs/media/01-glasses-intro.png) | ![Astra answers about the heart](docs/media/04-astra-heart.png) | ![Heart and left hip zones](docs/media/05-body-context.png) |
 
-**No install?** If no local server is running, the same page runs as a **web demo** in the browser: the identical dialogue rules over seed-142 states exported from the database (parity test: `tests/web-demo.test.js`). After merging to `main` it is published at https://granitespinoza.github.io/astravital/. Voice and the SQLite database run only in the full local app.
+![Earth doctor view: heart and left-hip anatomy, the repeated resting check against the frozen personal reference, and the experimental trend forecast](docs/media/07-earth-doctor.png)
+
+**No install? Open the live web demo: https://granitespinoza.github.io/astravital/** When no local server is running, the same pages run in the browser: the identical dialogue rules over seed-142 states exported from the database (parity test: `tests/web-demo.test.js`). Voice, the SQLite database and the crew → CMO → Earth rehearsal run only in the full local app.
 
 ---
 
 ## Earth doctor view
 
-Open **Earth doctor view** from the glasses page to inspect a simulated flight-surgeon report. The body view links to resting heart rate and left-hip bone density. The heart panel shows the personal reference, a 14-sol history and the decision threshold. The inbox puts confirmed alerts first and the evidence panel exposes Bronze, Silver and Gold records.
+Open **Earth doctor view** from the glasses page to inspect a simulated flight-surgeon report. The body view links to resting heart rate and left-hip bone density. The heart panel shows the personal reference, a 14-sol history, the decision threshold and whether the deviation persisted on the repeat check. The inbox puts **confirmed ALERTs** (two consecutive ALERT readings in the same direction) first, and the evidence panel exposes Bronze, Silver and Gold records.
+
+**Trend forecast · experimental (doctor only).** The heart panel also shows a damped-trend Holt forecast of resting heart rate for the next three sols, with 80% intervals, from one value per sol. It never changes the decision, never reaches Astra or the crew, and is labeled experimental: in a time-ordered backtest on 200 synthetic crews × 180 sols it adapts to each person (error 1.49 bpm versus 3.05 bpm for a fixed reference) but does **not** yet beat simply repeating the last reading (1.46 bpm), and the current rule flags a gradual drift earlier. So our claim stays **early warning**, not prediction. [Results](docs/RESULTADOS.md#experimental-trend-forecast--2026-11-15)
 
 - **Web demo** opens Alex Morgan's received training report. Start with the glasses, then select **Earth doctor view** to inspect the same resting check from Ground. After **Check again**, the link opens the repeat check with the same personal reference and evidence. Select **Heart** or **Bones** to zoom into the corresponding zone, then choose **Full body** to return to the overview. Alex has synthetic DXA scans. The other crew members have no scans. Ground actions stay in this browser.
 - **Local rehearsal** starts with `node scripts/start-mission.mjs` at `http://127.0.0.1:8766/mission.html`. Pair a crew client, send readings and queue a report. **Simulate Earth receipt** advances the exercise immediately. Actions stay in SQLite. See the [walkthrough](docs/MISSION-LAN.md).
+- With `npm run demo` (no mission profile), **Earth doctor view** shows the same seed-142 training report as the web demo; live crew readings need the mission rehearsal above.
 
 **From space to Earth · future vision.** A similar workflow could help clinicians review delayed observations from people in remote terrestrial settings. This prototype exercises the workflow with synthetic observations and local actions.
 
 ## Try the demo (about 1 minute)
 
-1. Open `http://127.0.0.1:4173/` after [starting it locally](#run-it-locally). Tap the glasses or **Start experience**: the camera moves through the lens into the wearer's view.
-2. The visor shows **Heart: Review change** and **Bones: Worth a review**.
-3. Ask *"Astra, how is my heart?"* (voice or **Prefer to type?**). Astra explains that the reading differs from the usual resting pattern.
-4. Choose **Check again**. The repeat keeps the original reference, so a real change cannot be "normalized away".
+1. Open the [live web demo](https://granitespinoza.github.io/astravital/), or `http://127.0.0.1:4173/` after [starting it locally](#run-it-locally). Tap the glasses or **Start experience**: the camera moves through the lens into the wearer's view.
+2. The visor shows **Heart: Check again** and **Bones: Worth a review**.
+3. Ask *"Astra, how is my heart?"* (voice in the local app, or type in either version). Astra explains that the reading differs from the usual resting pattern.
+4. Choose **Check again**. The repeat keeps the original reference, so a real change cannot be "normalized away"; the heart chip becomes **Review change**.
 5. Choose **Prepare review**, then **Confirm save**. The request is saved locally; Astra states that nothing was sent to Earth.
 6. Choose **Tell me why** or **Medical details** to see the numbers behind the summary: value, personal reference, z-score, data quality and source records.
+7. Select **Earth doctor view ↗**: the flight surgeon's dashboard opens on the same repeated check, with the inbox, evidence and the experimental trend forecast.
 
 ---
 
 ## How it works
 
+```mermaid
+flowchart LR
+  subgraph station["Lunar or Mars station · works offline"]
+    direction TB
+    sensors["Synthetic sensors<br/>resting heart rate · DXA bone"] --> bronze["BRONZE<br/>raw records + provenance"]
+    bronze --> valid{"Validation"}
+    valid -->|invalid| quarantine["QUARANTINE<br/>with reasons"]
+    valid -->|valid| silver["SILVER<br/>normalized records"]
+    silver --> gold["GOLD<br/>personal baseline · z-score · bone LSC · evidence IDs"]
+    gold --> astra["Astra · rule-based dialogue<br/>glasses view · local voice"]
+    gold --> cmo["CMO console"]
+    gold --> forecast["Trend forecast<br/>experimental · read-only"]
+    astra --> crew(["Astronaut"])
+    astra -->|"confirmed review request"| cmo
+    cmo --> report["Frozen report"]
+  end
+  subgraph earth["Earth · simulated"]
+    direction TB
+    ground["Earth doctor view<br/>heart · bones · inbox · evidence"] --> surgeon(["Flight surgeon"])
+    surgeon --> actions["Acknowledge · note · teleconsult request<br/>saved locally"]
+  end
+  report -->|"simulated 3–22 min delay"| ground
+  forecast -.->|"doctor only"| ground
+  style station fill:#0b2627,stroke:#90dcd9,color:#eef3ef
+  style earth fill:#282215,stroke:#e8c983,color:#eef3ef
+  style forecast stroke:#eafe07,stroke-dasharray:4 3
 ```
- Simulated wearable and bone records
-                │
-                ▼
- BRONZE   raw observations, immutable, with provenance
-                │  validation
-                ├──────────────► QUARANTINE  invalid or conflicting records, with reasons
-                ▼
- SILVER   normalized, deduplicated observations
-                │
-                ▼
- GOLD     derived state: personal baseline, z-score, bone comparison (with evidence IDs)
-                │
-                ▼
- ASTRA    bounded dialogue: closed set of intents, fixed sentences filled from GOLD
-                │
-       ┌────────┴─────────┐
-       ▼                  ▼
- Glasses view        Local review requests ──► Earth link (future, delay-tolerant)
- and voice
-```
+
+Every decision comes from versioned rules over Gold data. The dashed forecast is context for the flight surgeon only; it never changes a decision and never reaches the crew.
 
 - **Local-first:** a Node.js server with SQLite (`node:sqlite`) serves the interface and the API on `127.0.0.1`. After installation the profile runs without internet while the local server is reachable.
 - **Heart:** a versioned personal-baseline rule compares the latest valid resting reading with prior readings (WATCH at |z| ≥ 2, ALERT at |z| ≥ 3; simulation settings).
@@ -126,6 +140,7 @@ An assistant that gives an astronaut a wrong health answer is worse than no assi
 5. **Actions need a separate confirmation.** A review request opens a pending confirmation tied to the exact context; it expires after 5 minutes and is saved only once (idempotent request ID).
 6. **A repeat cannot hide a change.** The check keeps the original reference instead of absorbing the deviation.
 7. **Voice is input, not evidence.** Speech is transcribed locally and shown back as *"You said: …"*; it never becomes a measurement, and write actions still need confirmation.
+8. **The forecast is a formula, not a model that writes text.** The experimental trend forecast is deterministic exponential smoothing shown only to the flight surgeon, with its interval and its backtest result; it never changes a decision and Astra never mentions it.
 
 These behaviors are covered by automated tests, for example *"request, ambiguous confirmation and cancellation never persist a review"* and *"mute and out-of-scope medical questions retain evidence without inventing a diagnosis"* in [`tests/assistant.test.js`](tests/assistant.test.js). Details: [AI safety](docs/AI-SAFETY.md).
 
@@ -166,12 +181,14 @@ For the three-level mission rehearsal, see [Mission LAN demonstration](docs/MISS
 ### Verify
 
 ```sh
-npm run verify          # build + 59 automated tests
-npm run test:browser
-npm run test:functional
+npm run verify          # build + 70 automated tests
+npm run test:e2e        # web demo in headless Chrome (also run against the live site after each deploy)
+npm run test:functional # full local app: real server and SQLite, glasses → crew phone → CMO → Earth doctor
+npm run test:browser    # earlier glasses simulator and review console
+node scripts/forecast-eval.mjs   # time-ordered backtest of the experimental forecast
 ```
 
-Latest local run (2026-11-15, Node 22.23.2): **59 tests, 57 passed, 0 failed, 2 skipped**. The two skipped tests are opt-in integration runs of the real local voice models; run on the same day with `RUN_TTS_INTEGRATION=1` (Kokoro synthesis with a network guard) and `RUN_VOICE_INTEGRATION=1` (speech recognition on synthetic speech), **both passed** (4/4 and 6/6). All results and limits: [docs/RESULTADOS.md](docs/RESULTADOS.md).
+Latest local run (2026-11-15, macOS, Node 22.23.2): **70 tests, 68 passed, 0 failed, 2 skipped**; web demo end-to-end **29/29**; full local app end-to-end **17/17**; earlier browser check passed. CI repeats the build, the tests and both end-to-end runs on every push. The two skipped tests are opt-in integration runs of the real local voice models; run on the same day with `RUN_TTS_INTEGRATION=1` (Kokoro synthesis with a network guard) and `RUN_VOICE_INTEGRATION=1` (speech recognition on synthetic speech), **both passed** (4/4 and 6/6). All results and limits: [docs/RESULTADOS.md](docs/RESULTADOS.md).
 
 ---
 
