@@ -123,7 +123,7 @@ try {
   await click('next-action');
   await untilPage(() => js(`!document.getElementById('confirmation').hidden`), 'confirmation');
   await click('confirm-review');
-  await untilPage(() => js(`document.getElementById('next-action').textContent === 'Review saved'`), 'saved');
+  await untilPage(() => js(`document.getElementById('next-action').textContent === 'Message your medical team'`), 'saved');
   const reviews = await (await fetch(base + '/api/reviews')).json();
   check('confirmed review is stored once in SQLite', Array.isArray(reviews) && reviews.length === 1, `${reviews.length} review(s)`);
   check('glasses never show the experimental forecast to the crew', !(await js(`document.body.innerText.toLowerCase().includes('forecast')`)));
