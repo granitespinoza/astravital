@@ -138,6 +138,8 @@ try {
   await untilPage(async () => (await astra()).includes('heart reading'), 'pulse answer');
   check('typed "How is my pulse?" gets a heart answer', true, await astra());
   check('each reply shows the question it answers', await js(`document.querySelector('#conversation .you-asked')?.textContent.includes('How is my pulse?')`));
+  await js(`document.getElementById('message').value='   '; document.getElementById('message-form').requestSubmit(); true`);
+  check('sending an empty message explains what to do', await js(`document.getElementById('voice-error').textContent.includes('Type a question first')`));
 
   await js(`document.getElementById('next-action').click(); true`);
   await untilPage(async () => (await astra()).includes('Check repeated'), 'repeat answer');
