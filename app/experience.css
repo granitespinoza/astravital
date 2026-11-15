@@ -58,3 +58,8 @@ body[data-web-demo=true] a[href="/api/reviews"],body[data-web-demo=true] a[href=
 @media(prefers-reduced-motion:reduce){.lens-voice{animation:none!important}}
 .view-hint{top:64px}
 @media(max-width:500px){.visual:is([data-mode=focus],[data-mode=body]) .view-hint{display:none}}
+/* AI assistance: Anthropic Claude. The question above each reply, and a short highlight when a reply arrives. */
+.you-asked{margin:0 0 8px;font-size:.72rem;color:#8fb3ae;font-style:italic}
+.bubble.fresh{animation:reply-in .9s ease}
+@keyframes reply-in{0%{background:rgba(144,220,217,.16);box-shadow:0 0 0 6px rgba(144,220,217,.16)}100%{background:transparent;box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){.bubble.fresh{animation:none}}

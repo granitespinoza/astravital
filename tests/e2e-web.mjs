@@ -137,6 +137,9 @@ try {
   await js(`document.getElementById('message').value='How is my pulse?'; document.getElementById('message-form').requestSubmit(); true`);
   await untilPage(async () => (await astra()).includes('heart reading'), 'pulse answer');
   check('typed "How is my pulse?" gets a heart answer', true, await astra());
+  check('each reply shows the question it answers', await js(`document.querySelector('#conversation .you-asked')?.textContent.includes('How is my pulse?')`));
+  await js(`document.getElementById('message').value='   '; document.getElementById('message-form').requestSubmit(); true`);
+  check('sending an empty message explains what to do', await js(`document.getElementById('voice-error').textContent.includes('Type a question first')`));
 
   await js(`document.getElementById('next-action').click(); true`);
   await untilPage(async () => (await astra()).includes('Check repeated'), 'repeat answer');
@@ -146,11 +149,17 @@ try {
   check('Prepare review asks for a separate confirmation', true);
   await js(`document.getElementById('confirm-review').click(); true`);
   await untilPage(async () => (await astra()).startsWith('Saved'), 'saved answer');
-  check('Confirm save stores the review locally', await js(`document.getElementById('next-action').textContent === 'Review saved'`));
+  check('Confirm save stores the review locally', await js(`document.getElementById('next-action').textContent === 'Message your medical team'`));
 
   await page('Page.reload');
-  await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Review saved'`), 'persisted review after reload');
+  await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Message your medical team'`), 'persisted review after reload');
   check('saved review survives a reload', true);
+  // After saving, the primary button is the next useful step: it opens the case conversation with Astra's draft.
+  await js(`document.getElementById('next-action').click(); true`);
+  await untilPage(() => js(`(document.querySelector('#crew-conversation textarea')?.value ?? '').length > 20`), 'Astra draft in the conversation');
+  check('after saving, "Message your medical team" opens the conversation with Astra\'s draft', await js(`
+    document.querySelector('#crew-conversation textarea').value.includes('bpm')`));
+  await js(`(() => { const t = document.querySelector('#crew-conversation textarea'); t.value = ''; t.dispatchEvent(new Event('input', {bubbles:true})); return true; })()`);
 
   // Shared messages require a separate final preview, persist across views and never imply delivery.
   await js(`document.querySelector('#crew-conversation textarea').value='Message from crew E2E';
@@ -317,11 +326,21 @@ try {
 
   await untilPage(() => js(`document.querySelector('#crew-conversation .case-message-list')?.textContent.includes('Doctor reply E2E')`), 'reply visible to astronaut');
   check('astronaut receives the saved doctor reply in this browser', true);
-  await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Review saved'`), 'saved state before reset');
+  await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Message your medical team'`), 'saved state before reset');
   await js(`document.getElementById('reset-demo').click(); true`);
   await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO') && document.getElementById('next-action')?.textContent === 'Check again'`), 'demo reset');
   check('Reset demo returns the web demo to its first state', await js(`(() => { try { return !localStorage.getItem('astravital-ground-actions-v1'); } catch { return false; } })()`));
   check('no JavaScript errors after reset', errors.length === 0, errors.join(' | '));
+  // After the first visit the demo keeps working without internet (service worker cache).
+  await page('Emulation.setDeviceMetricsOverride', {width: 1440, height: 900, deviceScaleFactor: 1, mobile: false});
+  await js(`navigator.serviceWorker.ready.then(() => true)`);
+  await page('Page.reload');
+  await untilPage(() => js(`Boolean(navigator.serviceWorker.controller) && document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'page controlled by the service worker', 20000);
+  await page('Network.emulateNetworkConditions', {offline:true, latency:0, downloadThroughput:-1, uploadThroughput:-1});
+  await page('Page.reload');
+  const offlineOk = await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO') && (document.querySelector('#crew-overview h2')?.textContent ?? '').includes('Alex Morgan')`), 'offline reload', 20000).then(() => true, () => false);
+  await page('Network.emulateNetworkConditions', {offline:false, latency:0, downloadThroughput:-1, uploadThroughput:-1});
+  check('after the first visit the demo reloads and runs with no internet', offlineOk);
   for (const [width, height] of [[768, 1024], [390, 844]]) {
     await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: true});
     await page('Page.reload');
