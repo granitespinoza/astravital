@@ -1,0 +1,12 @@
+{
+  "generated": "2026-11-15",
+  "method": "Local macOS speech synthesis, Daniel voice, 165 words/minute",
+  "purpose": "Synthetic offline output clips for browser simulation; not live ASR or device audio validation",
+  "clips": {
+    "hud-check": "A check is available.",
+    "hud-followup": "A follow up is available.",
+    "hud-saved": "The request is saved on this device.",
+    "hud-error": "The request could not be saved. Try again.",
+    "hud-explain": "This reading is different from your usual readings at rest."
+  }
+}

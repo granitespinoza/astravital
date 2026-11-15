@@ -1,0 +1,21 @@
+# AI assistance: OpenAI Codex. Keep secrets, runtime data and downloaded models outside images.
+.git
+.agents
+.claude
+node_modules
+.runtime
+models/*
+!models/manifest.json
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+.DS_Store
+outputs
+work
+dist
+.vercel

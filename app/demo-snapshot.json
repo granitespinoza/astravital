@@ -1,0 +1,1603 @@
+{
+ "generatedBy": "scripts/export-demo.mjs",
+ "note": "Synthetic seed-142 states computed by server/database.mjs for the browser web demo. Not NASA or patient data.",
+ "seed": 142,
+ "simulated": true,
+ "states": {
+  "cardiovascular": {
+   "base": {
+    "id": "gold:cardiovascular:deviation",
+    "domain": "cardiovascular",
+    "scenario": "deviation",
+    "state": "watch",
+    "label": "WATCH",
+    "quality": "ok",
+    "reading": {
+     "id": "current",
+     "crewId": "crew-03",
+     "indicator": "heart_rate",
+     "value": 68,
+     "unit": "/min",
+     "context": "rest",
+     "observedAt": 1794639900000,
+     "source": "Demo heart rate sensor",
+     "quality": "ok",
+     "simulated": true
+    },
+    "current": {
+     "id": "current",
+     "crewId": "crew-03",
+     "indicator": "heart_rate",
+     "value": 68,
+     "unit": "/min",
+     "context": "rest",
+     "observedAt": 1794639900000,
+     "source": "Demo heart rate sensor",
+     "quality": "ok",
+     "simulated": true
+    },
+    "baseline": {
+     "mean": 60.642857142857146,
+     "sd": 2.8448913148671595,
+     "n": 14,
+     "window": 14,
+     "ids": [
+      "history--14",
+      "history--13",
+      "history--12",
+      "history--11",
+      "history--10",
+      "history--9",
+      "history--8",
+      "history--7",
+      "history--6",
+      "history--5",
+      "history--4",
+      "history--3",
+      "history--2",
+      "history--1"
+     ]
+    },
+    "history": [
+     {
+      "id": "history--14",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 59,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793397050000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--13",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 58,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793485825000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--12",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793574600000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--11",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 64,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793663375000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--10",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793752150000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--9",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793840925000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--8",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 61,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793929700000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--7",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794018475000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--6",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794107250000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--5",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794196025000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--4",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 59,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794284800000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--3",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 65,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794373575000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--2",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 60,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794462350000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--1",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794551125000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     }
+    ],
+    "decision": {
+     "quality": "ok",
+     "baseline": {
+      "mean": 60.642857142857146,
+      "sd": 2.8448913148671595,
+      "n": 14,
+      "window": 14,
+      "ids": [
+       "history--14",
+       "history--13",
+       "history--12",
+       "history--11",
+       "history--10",
+       "history--9",
+       "history--8",
+       "history--7",
+       "history--6",
+       "history--5",
+       "history--4",
+       "history--3",
+       "history--2",
+       "history--1"
+      ]
+     },
+     "z": 2.58608925363688,
+     "level": "watch",
+     "rule": "Personal resting heart rate z-score v0.1",
+     "reason": "Outside the configured personal band. A repeat reading can help confirm the deviation.",
+     "slope": 1
+    },
+    "evidenceIds": [
+     "silver:bronze:cardiovascular:deviation:history--14",
+     "silver:bronze:cardiovascular:deviation:history--13",
+     "silver:bronze:cardiovascular:deviation:history--12",
+     "silver:bronze:cardiovascular:deviation:history--11",
+     "silver:bronze:cardiovascular:deviation:history--10",
+     "silver:bronze:cardiovascular:deviation:history--9",
+     "silver:bronze:cardiovascular:deviation:history--8",
+     "silver:bronze:cardiovascular:deviation:history--7",
+     "silver:bronze:cardiovascular:deviation:history--6",
+     "silver:bronze:cardiovascular:deviation:history--5",
+     "silver:bronze:cardiovascular:deviation:history--4",
+     "silver:bronze:cardiovascular:deviation:history--3",
+     "silver:bronze:cardiovascular:deviation:history--2",
+     "silver:bronze:cardiovascular:deviation:history--1",
+     "silver:bronze:cardiovascular:deviation:current"
+    ],
+    "rules": [
+     {
+      "id": "Personal resting heart rate z-score v0.1",
+      "window": 14,
+      "dayMs": 88775000,
+      "minSamples": 5,
+      "staleMs": 93600000,
+      "watch": 2,
+      "alert": 3
+     }
+    ],
+    "performed": false,
+    "simulated": true,
+    "requested": false,
+    "review": null
+   },
+   "performed": {
+    "id": "gold:cardiovascular:deviation",
+    "domain": "cardiovascular",
+    "scenario": "deviation",
+    "state": "alert",
+    "label": "ALERT",
+    "quality": "ok",
+    "reading": {
+     "id": "repeat-deviation",
+     "crewId": "crew-03",
+     "indicator": "heart_rate",
+     "value": 73,
+     "unit": "/min",
+     "context": "rest",
+     "observedAt": 1794640320000,
+     "source": "Demo heart rate sensor",
+     "quality": "ok",
+     "simulated": true
+    },
+    "current": {
+     "id": "repeat-deviation",
+     "crewId": "crew-03",
+     "indicator": "heart_rate",
+     "value": 73,
+     "unit": "/min",
+     "context": "rest",
+     "observedAt": 1794640320000,
+     "source": "Demo heart rate sensor",
+     "quality": "ok",
+     "simulated": true
+    },
+    "baseline": {
+     "mean": 60.642857142857146,
+     "sd": 2.8448913148671595,
+     "n": 14,
+     "window": 14,
+     "ids": [
+      "history--14",
+      "history--13",
+      "history--12",
+      "history--11",
+      "history--10",
+      "history--9",
+      "history--8",
+      "history--7",
+      "history--6",
+      "history--5",
+      "history--4",
+      "history--3",
+      "history--2",
+      "history--1"
+     ]
+    },
+    "history": [
+     {
+      "id": "history--14",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 59,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793397050000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--13",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 58,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793485825000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--12",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793574600000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--11",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 64,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793663375000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--10",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793752150000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--9",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793840925000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--8",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 61,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793929700000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--7",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794018475000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--6",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794107250000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--5",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794196025000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--4",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 59,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794284800000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--3",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 65,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794373575000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--2",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 60,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794462350000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--1",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794551125000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     }
+    ],
+    "decision": {
+     "quality": "ok",
+     "baseline": {
+      "mean": 60.642857142857146,
+      "sd": 2.8448913148671595,
+      "n": 14,
+      "window": 14,
+      "ids": [
+       "history--14",
+       "history--13",
+       "history--12",
+       "history--11",
+       "history--10",
+       "history--9",
+       "history--8",
+       "history--7",
+       "history--6",
+       "history--5",
+       "history--4",
+       "history--3",
+       "history--2",
+       "history--1"
+      ]
+     },
+     "z": 4.343625639603692,
+     "level": "alert",
+     "rule": "Personal resting heart rate z-score v0.1",
+     "reason": "Outside the configured personal band. A repeat reading can help confirm the deviation.",
+     "slope": 2.0010352912323834
+    },
+    "evidenceIds": [
+     "silver:bronze:cardiovascular:deviation:history--14",
+     "silver:bronze:cardiovascular:deviation:history--13",
+     "silver:bronze:cardiovascular:deviation:history--12",
+     "silver:bronze:cardiovascular:deviation:history--11",
+     "silver:bronze:cardiovascular:deviation:history--10",
+     "silver:bronze:cardiovascular:deviation:history--9",
+     "silver:bronze:cardiovascular:deviation:history--8",
+     "silver:bronze:cardiovascular:deviation:history--7",
+     "silver:bronze:cardiovascular:deviation:history--6",
+     "silver:bronze:cardiovascular:deviation:history--5",
+     "silver:bronze:cardiovascular:deviation:history--4",
+     "silver:bronze:cardiovascular:deviation:history--3",
+     "silver:bronze:cardiovascular:deviation:history--2",
+     "silver:bronze:cardiovascular:deviation:history--1",
+     "silver:bronze:cardiovascular:deviation:current",
+     "silver:bronze:cardiovascular:deviation:repeat-deviation"
+    ],
+    "rules": [
+     {
+      "id": "Personal resting heart rate z-score v0.1",
+      "window": 14,
+      "dayMs": 88775000,
+      "minSamples": 5,
+      "staleMs": 93600000,
+      "watch": 2,
+      "alert": 3
+     }
+    ],
+    "performed": true,
+    "simulated": true,
+    "requested": false,
+    "review": null
+   },
+   "requested": {
+    "id": "gold:cardiovascular:deviation",
+    "domain": "cardiovascular",
+    "scenario": "deviation",
+    "state": "alert",
+    "label": "ALERT",
+    "quality": "ok",
+    "reading": {
+     "id": "repeat-deviation",
+     "crewId": "crew-03",
+     "indicator": "heart_rate",
+     "value": 73,
+     "unit": "/min",
+     "context": "rest",
+     "observedAt": 1794640320000,
+     "source": "Demo heart rate sensor",
+     "quality": "ok",
+     "simulated": true
+    },
+    "current": {
+     "id": "repeat-deviation",
+     "crewId": "crew-03",
+     "indicator": "heart_rate",
+     "value": 73,
+     "unit": "/min",
+     "context": "rest",
+     "observedAt": 1794640320000,
+     "source": "Demo heart rate sensor",
+     "quality": "ok",
+     "simulated": true
+    },
+    "baseline": {
+     "mean": 60.642857142857146,
+     "sd": 2.8448913148671595,
+     "n": 14,
+     "window": 14,
+     "ids": [
+      "history--14",
+      "history--13",
+      "history--12",
+      "history--11",
+      "history--10",
+      "history--9",
+      "history--8",
+      "history--7",
+      "history--6",
+      "history--5",
+      "history--4",
+      "history--3",
+      "history--2",
+      "history--1"
+     ]
+    },
+    "history": [
+     {
+      "id": "history--14",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 59,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793397050000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--13",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 58,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793485825000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--12",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793574600000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--11",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 64,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793663375000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--10",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793752150000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--9",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793840925000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--8",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 61,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1793929700000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--7",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794018475000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--6",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794107250000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--5",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 63,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794196025000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--4",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 59,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794284800000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--3",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 65,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794373575000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--2",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 60,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794462350000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     },
+     {
+      "id": "history--1",
+      "crewId": "crew-03",
+      "indicator": "heart_rate",
+      "value": 57,
+      "unit": "/min",
+      "context": "rest",
+      "observedAt": 1794551125000,
+      "source": "Demo heart rate sensor",
+      "quality": "ok",
+      "simulated": true
+     }
+    ],
+    "decision": {
+     "quality": "ok",
+     "baseline": {
+      "mean": 60.642857142857146,
+      "sd": 2.8448913148671595,
+      "n": 14,
+      "window": 14,
+      "ids": [
+       "history--14",
+       "history--13",
+       "history--12",
+       "history--11",
+       "history--10",
+       "history--9",
+       "history--8",
+       "history--7",
+       "history--6",
+       "history--5",
+       "history--4",
+       "history--3",
+       "history--2",
+       "history--1"
+      ]
+     },
+     "z": 4.343625639603692,
+     "level": "alert",
+     "rule": "Personal resting heart rate z-score v0.1",
+     "reason": "Outside the configured personal band. A repeat reading can help confirm the deviation.",
+     "slope": 2.0010352912323834
+    },
+    "evidenceIds": [
+     "silver:bronze:cardiovascular:deviation:history--14",
+     "silver:bronze:cardiovascular:deviation:history--13",
+     "silver:bronze:cardiovascular:deviation:history--12",
+     "silver:bronze:cardiovascular:deviation:history--11",
+     "silver:bronze:cardiovascular:deviation:history--10",
+     "silver:bronze:cardiovascular:deviation:history--9",
+     "silver:bronze:cardiovascular:deviation:history--8",
+     "silver:bronze:cardiovascular:deviation:history--7",
+     "silver:bronze:cardiovascular:deviation:history--6",
+     "silver:bronze:cardiovascular:deviation:history--5",
+     "silver:bronze:cardiovascular:deviation:history--4",
+     "silver:bronze:cardiovascular:deviation:history--3",
+     "silver:bronze:cardiovascular:deviation:history--2",
+     "silver:bronze:cardiovascular:deviation:history--1",
+     "silver:bronze:cardiovascular:deviation:current",
+     "silver:bronze:cardiovascular:deviation:repeat-deviation"
+    ],
+    "rules": [
+     {
+      "id": "Personal resting heart rate z-score v0.1",
+      "window": 14,
+      "dayMs": 88775000,
+      "minSamples": 5,
+      "staleMs": 93600000,
+      "watch": 2,
+      "alert": 3
+     }
+    ],
+    "performed": true,
+    "simulated": true,
+    "requested": true,
+    "review": {
+     "id": "web-demo-heart",
+     "requestId": "web-demo-heart",
+     "domain": "cardiovascular",
+     "scenario": "deviation",
+     "stateId": "gold:cardiovascular:deviation",
+     "evidenceIds": [
+      "silver:bronze:cardiovascular:deviation:history--14",
+      "silver:bronze:cardiovascular:deviation:history--13",
+      "silver:bronze:cardiovascular:deviation:history--12",
+      "silver:bronze:cardiovascular:deviation:history--11",
+      "silver:bronze:cardiovascular:deviation:history--10",
+      "silver:bronze:cardiovascular:deviation:history--9",
+      "silver:bronze:cardiovascular:deviation:history--8",
+      "silver:bronze:cardiovascular:deviation:history--7",
+      "silver:bronze:cardiovascular:deviation:history--6",
+      "silver:bronze:cardiovascular:deviation:history--5",
+      "silver:bronze:cardiovascular:deviation:history--4",
+      "silver:bronze:cardiovascular:deviation:history--3",
+      "silver:bronze:cardiovascular:deviation:history--2",
+      "silver:bronze:cardiovascular:deviation:history--1",
+      "silver:bronze:cardiovascular:deviation:current",
+      "silver:bronze:cardiovascular:deviation:repeat-deviation"
+     ],
+     "decision": {
+      "quality": "ok",
+      "baseline": {
+       "mean": 60.642857142857146,
+       "sd": 2.8448913148671595,
+       "n": 14,
+       "window": 14,
+       "ids": [
+        "history--14",
+        "history--13",
+        "history--12",
+        "history--11",
+        "history--10",
+        "history--9",
+        "history--8",
+        "history--7",
+        "history--6",
+        "history--5",
+        "history--4",
+        "history--3",
+        "history--2",
+        "history--1"
+       ]
+      },
+      "z": 4.343625639603692,
+      "level": "alert",
+      "rule": "Personal resting heart rate z-score v0.1",
+      "reason": "Outside the configured personal band. A repeat reading can help confirm the deviation.",
+      "slope": 2.0010352912323834
+     },
+     "simulated": true,
+     "status": "requested",
+     "delivery": "local-only",
+     "createdAt": "2026-11-15T13:15:52.038Z"
+    }
+   }
+  },
+  "bone": {
+   "base": {
+    "id": "gold:bone:change",
+    "domain": "bone",
+    "scenario": "change",
+    "state": "change-observed",
+    "label": "CHANGE OBSERVED",
+    "quality": "ok",
+    "reading": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-current",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 0.97,
+     "observedAt": "2026-11-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "current": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-current",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 0.97,
+     "observedAt": "2026-11-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "baseline": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-baseline",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 1,
+     "observedAt": "2026-05-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "history": [
+     {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-baseline",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 1,
+      "observedAt": "2026-05-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     },
+     {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-current",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 0.97,
+      "observedAt": "2026-11-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     }
+    ],
+    "decision": {
+     "domain": "bone",
+     "contractId": "astravital.bone-measurement.v1",
+     "comparable": true,
+     "baseline": {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-baseline",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 1,
+      "observedAt": "2026-05-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     },
+     "current": {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-current",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 0.97,
+      "observedAt": "2026-11-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     },
+     "percentChange": -3.0000000000000027,
+     "significance": "exceeds-measurement-lsc",
+     "message": "The numerical measurement change exceeds the explicitly assumed synthetic LSC. It does not establish disease, porosity or fracture risk.",
+     "reasons": [],
+     "region": "total_hip",
+     "simulated": true,
+     "status": "change-observed",
+     "lscPercent": 2.5
+    },
+    "evidenceIds": [
+     "silver:bronze:bone:change:bone-baseline",
+     "silver:bronze:bone:change:bone-current"
+    ],
+    "rules": [
+     {
+      "id": "Comparable DXA aBMD change v0.1",
+      "lscPercent": 2.5,
+      "precisionBasis": "synthetic assumption",
+      "precisionAssessmentId": "synthetic-precision-01"
+     }
+    ],
+    "performed": false,
+    "simulated": true,
+    "requested": false,
+    "review": null
+   },
+   "requested": {
+    "id": "gold:bone:change",
+    "domain": "bone",
+    "scenario": "change",
+    "state": "change-observed",
+    "label": "CHANGE OBSERVED",
+    "quality": "ok",
+    "reading": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-current",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 0.97,
+     "observedAt": "2026-11-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "current": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-current",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 0.97,
+     "observedAt": "2026-11-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "baseline": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-baseline",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 1,
+     "observedAt": "2026-05-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "history": [
+     {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-baseline",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 1,
+      "observedAt": "2026-05-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     },
+     {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-current",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 0.97,
+      "observedAt": "2026-11-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     }
+    ],
+    "decision": {
+     "domain": "bone",
+     "contractId": "astravital.bone-measurement.v1",
+     "comparable": true,
+     "baseline": {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-baseline",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 1,
+      "observedAt": "2026-05-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     },
+     "current": {
+      "contractId": "astravital.bone-measurement.v1",
+      "domain": "bone",
+      "id": "bone-current",
+      "crewId": "crew-03",
+      "indicator": "areal_bmd",
+      "region": "total_hip",
+      "side": "left",
+      "method": "DXA",
+      "unit": "g/cm2",
+      "value": 0.97,
+      "observedAt": "2026-11-15T07:05:00Z",
+      "calibrationId": "dxa-demo-cal-01",
+      "quality": "ok",
+      "precision": {
+       "lscPercent": 2.5,
+       "assessmentId": "synthetic-precision-01",
+       "basis": "synthetic assumption"
+      },
+      "source": {
+       "type": "synthetic",
+       "generator": "bone-fixture-v1",
+       "seed": 142
+      },
+      "simulated": true
+     },
+     "percentChange": -3.0000000000000027,
+     "significance": "exceeds-measurement-lsc",
+     "message": "The numerical measurement change exceeds the explicitly assumed synthetic LSC. It does not establish disease, porosity or fracture risk.",
+     "reasons": [],
+     "region": "total_hip",
+     "simulated": true,
+     "status": "change-observed",
+     "lscPercent": 2.5
+    },
+    "evidenceIds": [
+     "silver:bronze:bone:change:bone-baseline",
+     "silver:bronze:bone:change:bone-current"
+    ],
+    "rules": [
+     {
+      "id": "Comparable DXA aBMD change v0.1",
+      "lscPercent": 2.5,
+      "precisionBasis": "synthetic assumption",
+      "precisionAssessmentId": "synthetic-precision-01"
+     }
+    ],
+    "performed": false,
+    "simulated": true,
+    "requested": true,
+    "review": {
+     "id": "web-demo-bone",
+     "requestId": "web-demo-bone",
+     "domain": "bone",
+     "scenario": "change",
+     "stateId": "gold:bone:change",
+     "evidenceIds": [
+      "silver:bronze:bone:change:bone-baseline",
+      "silver:bronze:bone:change:bone-current"
+     ],
+     "decision": {
+      "domain": "bone",
+      "contractId": "astravital.bone-measurement.v1",
+      "comparable": true,
+      "baseline": {
+       "contractId": "astravital.bone-measurement.v1",
+       "domain": "bone",
+       "id": "bone-baseline",
+       "crewId": "crew-03",
+       "indicator": "areal_bmd",
+       "region": "total_hip",
+       "side": "left",
+       "method": "DXA",
+       "unit": "g/cm2",
+       "value": 1,
+       "observedAt": "2026-05-15T07:05:00Z",
+       "calibrationId": "dxa-demo-cal-01",
+       "quality": "ok",
+       "precision": {
+        "lscPercent": 2.5,
+        "assessmentId": "synthetic-precision-01",
+        "basis": "synthetic assumption"
+       },
+       "source": {
+        "type": "synthetic",
+        "generator": "bone-fixture-v1",
+        "seed": 142
+       },
+       "simulated": true
+      },
+      "current": {
+       "contractId": "astravital.bone-measurement.v1",
+       "domain": "bone",
+       "id": "bone-current",
+       "crewId": "crew-03",
+       "indicator": "areal_bmd",
+       "region": "total_hip",
+       "side": "left",
+       "method": "DXA",
+       "unit": "g/cm2",
+       "value": 0.97,
+       "observedAt": "2026-11-15T07:05:00Z",
+       "calibrationId": "dxa-demo-cal-01",
+       "quality": "ok",
+       "precision": {
+        "lscPercent": 2.5,
+        "assessmentId": "synthetic-precision-01",
+        "basis": "synthetic assumption"
+       },
+       "source": {
+        "type": "synthetic",
+        "generator": "bone-fixture-v1",
+        "seed": 142
+       },
+       "simulated": true
+      },
+      "percentChange": -3.0000000000000027,
+      "significance": "exceeds-measurement-lsc",
+      "message": "The numerical measurement change exceeds the explicitly assumed synthetic LSC. It does not establish disease, porosity or fracture risk.",
+      "reasons": [],
+      "region": "total_hip",
+      "simulated": true,
+      "status": "change-observed",
+      "lscPercent": 2.5
+     },
+     "simulated": true,
+     "status": "requested",
+     "delivery": "local-only",
+     "createdAt": "2026-11-15T13:15:52.038Z"
+    }
+   }
+  }
+ },
+ "reviews": {
+  "cardiovascular": {
+   "id": "web-demo-heart",
+   "requestId": "web-demo-heart",
+   "domain": "cardiovascular",
+   "scenario": "deviation",
+   "stateId": "gold:cardiovascular:deviation",
+   "evidenceIds": [
+    "silver:bronze:cardiovascular:deviation:history--14",
+    "silver:bronze:cardiovascular:deviation:history--13",
+    "silver:bronze:cardiovascular:deviation:history--12",
+    "silver:bronze:cardiovascular:deviation:history--11",
+    "silver:bronze:cardiovascular:deviation:history--10",
+    "silver:bronze:cardiovascular:deviation:history--9",
+    "silver:bronze:cardiovascular:deviation:history--8",
+    "silver:bronze:cardiovascular:deviation:history--7",
+    "silver:bronze:cardiovascular:deviation:history--6",
+    "silver:bronze:cardiovascular:deviation:history--5",
+    "silver:bronze:cardiovascular:deviation:history--4",
+    "silver:bronze:cardiovascular:deviation:history--3",
+    "silver:bronze:cardiovascular:deviation:history--2",
+    "silver:bronze:cardiovascular:deviation:history--1",
+    "silver:bronze:cardiovascular:deviation:current",
+    "silver:bronze:cardiovascular:deviation:repeat-deviation"
+   ],
+   "decision": {
+    "quality": "ok",
+    "baseline": {
+     "mean": 60.642857142857146,
+     "sd": 2.8448913148671595,
+     "n": 14,
+     "window": 14,
+     "ids": [
+      "history--14",
+      "history--13",
+      "history--12",
+      "history--11",
+      "history--10",
+      "history--9",
+      "history--8",
+      "history--7",
+      "history--6",
+      "history--5",
+      "history--4",
+      "history--3",
+      "history--2",
+      "history--1"
+     ]
+    },
+    "z": 4.343625639603692,
+    "level": "alert",
+    "rule": "Personal resting heart rate z-score v0.1",
+    "reason": "Outside the configured personal band. A repeat reading can help confirm the deviation.",
+    "slope": 2.0010352912323834
+   },
+   "simulated": true,
+   "status": "requested",
+   "delivery": "local-only",
+   "createdAt": "2026-11-15T13:15:52.038Z"
+  },
+  "bone": {
+   "id": "web-demo-bone",
+   "requestId": "web-demo-bone",
+   "domain": "bone",
+   "scenario": "change",
+   "stateId": "gold:bone:change",
+   "evidenceIds": [
+    "silver:bronze:bone:change:bone-baseline",
+    "silver:bronze:bone:change:bone-current"
+   ],
+   "decision": {
+    "domain": "bone",
+    "contractId": "astravital.bone-measurement.v1",
+    "comparable": true,
+    "baseline": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-baseline",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 1,
+     "observedAt": "2026-05-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "current": {
+     "contractId": "astravital.bone-measurement.v1",
+     "domain": "bone",
+     "id": "bone-current",
+     "crewId": "crew-03",
+     "indicator": "areal_bmd",
+     "region": "total_hip",
+     "side": "left",
+     "method": "DXA",
+     "unit": "g/cm2",
+     "value": 0.97,
+     "observedAt": "2026-11-15T07:05:00Z",
+     "calibrationId": "dxa-demo-cal-01",
+     "quality": "ok",
+     "precision": {
+      "lscPercent": 2.5,
+      "assessmentId": "synthetic-precision-01",
+      "basis": "synthetic assumption"
+     },
+     "source": {
+      "type": "synthetic",
+      "generator": "bone-fixture-v1",
+      "seed": 142
+     },
+     "simulated": true
+    },
+    "percentChange": -3.0000000000000027,
+    "significance": "exceeds-measurement-lsc",
+    "message": "The numerical measurement change exceeds the explicitly assumed synthetic LSC. It does not establish disease, porosity or fracture risk.",
+    "reasons": [],
+    "region": "total_hip",
+    "simulated": true,
+    "status": "change-observed",
+    "lscPercent": 2.5
+   },
+   "simulated": true,
+   "status": "requested",
+   "delivery": "local-only",
+   "createdAt": "2026-11-15T13:15:52.038Z"
+  }
+ },
+ "evidence": {
+  "seed": 142,
+  "counts": {
+   "bronze": 117,
+   "quarantine": 1,
+   "silver": 116,
+   "gold": 13,
+   "events": 0,
+   "reviews": 0
+  }
+ }
+}

@@ -1,78 +1,50 @@
-# ASTRAVITAL — instrucciones para agentes (Claude y Codex)
+# ASTRAVITAL — agent instructions
 
-**Proyecto:** Software inteligente de monitoreo y adaptación humana para misiones espaciales.
-**Estado:** propuesta en fase inicial. Nada de lo siguiente está implementado salvo que el repositorio lo demuestre.
+## Current direction and scope
 
-## Propuesta de trabajo (no son funcionalidades existentes)
+Build a local-first executable demonstration: glasses UI, real microphone input when local ASR is installed, contextual structured-data queries, seeded SQLite medallion processing, cardiovascular and bone domains, and persisted explicit review actions. The static/browser-only implementation and its earlier results are historical baselines, not proof of the new backend or voice capabilities.
 
-- Monitoreo de variables fisiológicas de astronautas.
-- Procesamiento local cuando no hay comunicación con la Tierra (offline-first).
-- Alertas explicables basadas en líneas base individuales y Z-Score.
-- Ventana móvil de 14 días: **hipótesis** pendiente de evaluar, no parámetro fijado.
-- Interfaz que ayude al tripulante a interpretar y priorizar alertas.
-- Clon o gemelo digital: **visión futura**, alcance por definir.
+SPECS 27 remains a design reference. Do not describe the browser as a native Lens, typed input as ASR, open-ear speakers as bone-conduction output, a body marker as a lesion, or a local saved request as delivered care. Physical sensors, native glasses, clinical validation and background monitoring are not demonstrated.
 
-## Reglas obligatorias
+## Read only the context needed
 
-1. **Separa siempre** cuatro categorías y etiqueta cada afirmación:
-   `[EVIDENCIA]` (fuente verificable) · `[HIPÓTESIS]` · `[SIMULACIÓN]` · `[RESULTADO COMPROBADO]` (con datos y método reproducibles).
-2. Un Z-Score **no es un diagnóstico médico** ni prueba suficiente de un gemelo digital. Descríbelo como señal estadística de desviación respecto a la línea base.
-3. No afirmes que el proyecto supera a la NASA ni que tiene validación clínica sin evidencia publicada que lo respalde.
-4. Marca todo dato simulado como tal y registra sus limitaciones: origen, generador, supuestos y lo que no representa.
-5. Toda propuesta de detección debe evaluar: falsas alarmas (tasa y coste), datos faltantes, deriva de la línea base y fallos o desconexión de sensores.
-6. Respalda cada afirmación científica con una fuente verificable (DOI, PMID o URL de una agencia o revista). Si no la encuentras, dilo y marca la afirmación como `[HIPÓTESIS]`. No inventes referencias.
-7. Prefiere fuentes primarias: artículos revisados por pares, NASA Technical Reports Server (NTRS), Human Research Program, ESA. Las secundarias solo como contexto.
+- `README.md`: startup, health, API, boundaries and verification.
+- `docs/ARQUITECTURA.md`: local/optional Azure profiles, data ownership and errors.
+- `docs/REQUISITOS-MVP.md`: acceptance gates and implementation status.
+- `docs/RESULTADOS.md`: actual results and checks still pending.
+- `data/README.md`, `docs/SALUD-OSEA.md`: synthetic data and bone interpretation limits.
+- `docs/ENTREGA.md`, `docs/AUDITORIA-REFERENCIAS.md`: challenge evidence and external claims.
+- `docs/DECISION-VISOR.md`, `docs/INVESTIGACION-UX-LENTES-SPECS-27.md`: design history, to be read against the current direction.
+- `infra/azure/README.md`: optional, not executed Azure scaffold.
 
-## Respuestas breves (opcional)
+## Integrity
 
-Por defecto responde con explicaciones completas. Usa el estilo Caveman solo cuando el usuario lo pida (`/caveman` en Claude, `$caveman` en Codex, o "sé breve"). Desactívalo con "stop caveman" o "normal mode". Documentos, código y commits siempre en prosa normal.
+1. Distinguish `[Evidence]` / `[EVIDENCIA]`, `[Hypothesis]` / `[HIPÓTESIS]`, `[Simulation]` / `[SIMULACIÓN]`, and `[Verified result]` / `[RESULTADO COMPROBADO]`.
+2. Z-score and longitudinal bone change are not diagnoses, validated forecasts or digital twins. Do not invent clinical validation or superiority to NASA.
+3. Cite primary sources for scientific claims. Unsupported thresholds, precision and workloads are hypotheses.
+4. Seed 142 and virtual observations demonstrate software; they do not train ASR, simulate all physiology or become NASA measurements.
+5. Treat missing, stale, suspect, device-fault and insufficient/incompatible evidence separately. Do not infer a broken sensor from an unusual value.
+6. Bone significance needs compatible measurements and known precision/LSC; otherwise report the limitation. Do not infer fracture/osteoporosis from a colored body model.
+7. Keep explicit user control over saved actions. Confirm only final recognized input, revalidate context, persist, then report success. Idempotent retry must reuse the request ID.
+8. Record commands, versions, seed, actual outcomes and limitations in `docs/RESULTADOS.md`. Never turn a target or historical test into a current result.
 
-## Qué herramienta usar
+## Implementation boundaries
 
-Consulta `docs/GUIA-HERRAMIENTAS.md`.
+- Use Node.js 22.13+ (26 recommended) and preserve existing domain logic/tests unless the authorized change needs an adaptation.
+- SQLite owns local observations, layers and review state. Do not introduce a second authoritative IndexedDB store for the same data. Cache Storage is for assets.
+- Enforce Bronze -> validation/quarantine -> Silver -> evaluation -> Gold. The assistant must not bypass validation or execute dictated SQL.
+- The microphone carries commands, not physiological observations. Local ASR must use installed artifacts; never silently fall back to a cloud service.
+- Local operation without Earth means WAN disconnected with localhost reachable after setup. DevTools Offline can block local APIs and is a different test.
+- Speech output uses only `localService: true` browser voices; missing local voice means text fallback. Do not claim Piper is installed.
+- Keep voice listening visible, consented and cancelable. Suspend input during spoken output to prevent self-triggered actions; keep equivalent controls.
+- Azure is a separately configured online profile. The scaffold does not prove deployment, durable database integration or Speech integration. Never put persistent SQLite on ephemeral replicas and call it durable.
+- Do not create paid resources, publish, change account authentication, push or submit to judging without authorization. Never expose secrets or raw microphone recordings in logs.
+- Every new component needs a requirement/risk. No extra health domains, brokers, gateways or lakehouse product without a measured need.
+- Preserve teammates' changes and create a recoverable backup before deletion or migration.
+- App, README and submission content stay in English; document AI/model/assets and licenses in `docs/SI-USAGE.md` and the relevant manifest.
 
-## Objetivo de misión
+## Project skills
 
-ASTRAVITAL debe funcionar en una **estación lunar y en una base en Marte sin conexión con la Tierra**. Todo el procesamiento es local; la Tierra es solo un destino de sincronización con retardo o cortes. Detalle técnico: skill `astravital-offline`.
+Load only the relevant project skill. Existing skill checklists predate this backend increment; the user's current scope and the evidence in `README.md`/requirements take precedence over stale browser-only statements. Do not edit those skills as part of a bounded docs/IaC task.
 
-## NASA Space Apps Challenge 2026
-
-Competimos en el reto oficial **"Create Health Monitoring Software for Astronauts on Space Missions"**. La entrega cierra el **domingo 15 de noviembre de 2026 a las 23:59** (hora del Local Event). Todo lo que vaya a la entrega se escribe en inglés. Hay que declarar el código y las imágenes generados con IA.
-
-## Concepto del sistema
-
-Antes de diseñar funciones o la interfaz, lee `docs/CONCEPTO-SISTEMA.md` (actores, sensores existentes y propuestos, arquitectura del "mini sistema operativo", niveles de escalado y qué se presenta como funcional, esquemático o visión futura) y `docs/REQUISITOS-MVP.md` (requisitos con criterio de aceptación, boceto del dashboard y decisiones abiertas). El MVP funcional es el **dashboard del astronauta** con dos indicadores físicos; el resto se presenta como esquema.
-
-## Enrutador de skills (carga solo la que toque)
-
-| Fase o tarea | Skill (Claude `/nombre` · Codex `$nombre`) |
-|---|---|
-| Elegir funciones, indicadores y alcance del MVP | `astravital-reto` |
-| Offline, red del hábitat, sync, Luna/Marte, despliegue local | `astravital-offline` (su `references/red-habitat.md` solo para red o seguridad) |
-| Tests, datos simulados, falsas alarmas, ventanas 7/14/28 | `astravital-qa` |
-| Revisar la página de entrega, elegibilidad y rúbrica | `spaceapps-2026` |
-| Guion de 30 s o deck de 7 diapositivas | `spaceapps-demo` |
-| Generar y comparar ideas antes de decidir | `ce-ideate` |
-| Respuestas breves durante el sprint (opcional) | `caveman` |
-| Auditar un cambio importante | `auditar` |
-
-No cargues todas a la vez: cada skill indica cuándo leer sus referencias.
-
-## Resolución de skills en este entorno
-
-- Caveman está instalado para Codex en `~/.agents/skills/caveman/SKILL.md` y para Claude en `~/.claude/skills/caveman/SKILL.md`.
-- La capacidad de innovación instalada es `ce-ideate`: `~/.agents/skills/ce-ideate/SKILL.md` para Codex y `~/.claude/skills/ce-ideate/SKILL.md` para Claude. No afirmar que existe una skill instalada con el nombre literal `innovation`.
-- Si una skill no aparece en el catálogo de la conversación, comprobar su archivo y leerlo por su ruta antes de concluir que falta. Leer las referencias requeridas cuando se use.
-- No usar la posibilidad de escribir en `~/.codex/skills` como prueba de que faltan las skills de `~/.agents/skills`.
-- Canva está registrado en la configuración local de Codex. Su disponibilidad en una conversación depende de que el cliente exponga sus herramientas. La presencia de la URL no verifica la autenticación ni una conexión activa.
-- Si Canva no aparece entre las herramientas de esta conversación, informar de esa limitación específica. No reinstalar ni borrar una configuración existente por ese motivo.
-
-## Entorno web y despliegue (para Codex/Claude)
-
-- Build estático con procesamiento en el navegador, sin backend.
-- Demo para los jueces: Vercel plan gratuito (`*.vercel.app`), con la URL de producción pública y sin login (desactivar Vercel Authentication en producción). En la misión, el mismo build lo sirve un nodo local del hábitat.
-- Cero dependencias de red en tiempo de ejecución: sin CDNs, fuentes externas ni analytics. Prefiere APIs nativas del navegador y `node:test`.
-- Si un comando necesita red (por ejemplo `npm install`), el sandbox de Codex puede pedir aprobación: pídela en lugar de buscar atajos.
-- Las skills del proyecto se editan en `.claude/skills/` y se copian a `.agents/skills/` con `scripts/sync-skills.sh`.
-- Todo texto visible en la app y el README en inglés. Declarar código e imágenes generados con IA en `docs/SI-USAGE.md` y en el README.
-- No subir secretos. El login de Vercel/GitHub lo hace una persona del equipo.
+Edit project skills in `.claude/skills/`, then synchronize `.agents/skills/` using `bash scripts/sync-skills.sh` when skill changes are separately in scope. Respond at the user's requested length; keep persisted documents in normal prose.

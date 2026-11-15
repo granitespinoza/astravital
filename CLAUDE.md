@@ -1,2 +1,1 @@
 @AGENTS.md
-@docs/RELEVO-CLAUDE.md

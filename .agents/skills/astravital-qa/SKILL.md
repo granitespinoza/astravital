@@ -2,8 +2,15 @@
 name: astravital-qa
 description: Tests and evaluation for ASTRAVITAL - unit tests for the baseline/Z-Score engine, seeded simulated sensor data with injected anomalies, false-alarm and missed-alert metrics, 7/14/28-day window comparison, missing, stale and suspect data, device faults, baseline drift, and Moon/Mars Earth-link delay and blackout tests. Use for pruebas, tests, falsas alarmas, datos simulados, validation.
 ---
-
 # Pruebas y evaluación de ASTRAVITAL
+
+> Dirección vigente 2026-11-15: visor simulado como experiencia principal y consola como respaldo. Leer `docs/DECISION-VISOR.md`. No afirmar integración SPECS, ASR offline, monitoreo en segundo plano ni detección ósea; el audio abierto no es conducción ósea.
+
+
+## Estado real y alcance de esta skill (2026-11-14)
+
+El recuento vigente de pruebas del motor, escenarios y HUD está en los resultados; resultados en `docs/RESULTADOS.md`. S6 solo demuestra el flujo y registro local con la red desactivada; vaciar una cola Tierra es una prueba futura porque no existe transporte. No describir una señal plana como detectada automáticamente: el escenario suspect llega marcado y el motor comprueba entradas básicas.
+
 
 Objetivo: demostrar con datos reproducibles qué hace bien el sistema y dónde falla. Todo resultado de esta skill es [SIMULACIÓN] salvo que use datos reales con permiso. Requisitos que se prueban: `docs/REQUISITOS-MVP.md`.
 
@@ -19,12 +26,12 @@ Objetivo: demostrar con datos reproducibles qué hace bien el sistema y dónde f
 
 | # | Caso | Resultado esperado |
 |---|---|---|
-| 1 | La línea base usa las N mediciones anteriores del **mismo contexto** y excluye la evaluada | Media y desviación correctas; la FC en actividad no entra en la línea base de reposo |
+| 1 | La línea base usa las mediciones válidas anteriores dentro de la ventana del **mismo contexto** y excluye la evaluada | Media y desviación correctas; la FC en actividad no entra en la línea base de reposo |
 | 2 | Pocas mediciones válidas en la ventana | `insufficient-history`, nunca alerta |
 | 3 | Desviación típica 0 | Sin Z-Score, con estado explícito |
 | 4 | No hay medición en el intervalo esperado | `missing` |
 | 5 | Medición más antigua que la edad máxima | `stale` |
-| 6 | Valor físicamente imposible o señal plana | `suspect` (lectura sospechosa). No se infiere un fallo físico solo por eso |
+| 6 | Entrada inválida o fixture marcado suspect | `suspect`; la detección automática de señal plana queda futura. No inferir fallo físico |
 | 7 | El dispositivo informa error o desconexión | `device-fault`, distinto de `suspect` |
 | 8 | Umbrales de Z | `ok / watch / alert` según la configuración, incluidos los valores límite |
 | 9 | Alerta abierta | Sus mediciones no actualizan la línea base hasta la revisión |
@@ -38,9 +45,9 @@ Objetivo: demostrar con datos reproducibles qué hace bien el sistema y dónde f
 | S1 | Normal, 60 días, sin eventos | Tasa de falsas alarmas |
 | S2 | Deriva gradual (por ejemplo, FC en reposo +1,5 /min por día durante 10 días) | Tiempo hasta detectarla y que la alerta no desaparezca por absorción |
 | S3 | Evento agudo de 1 día (por ejemplo, FC en reposo +20 /min) | Sensibilidad |
-| S4 | Lectura sospechosa (señal plana) y, aparte, fallo informado por el dispositivo | Dos estados distintos; ninguno genera alerta de salud |
+| S4 | Fixture marcado suspect y, aparte, fallo informado por el dispositivo | Dos estados distintos; ninguno genera alerta de salud |
 | S5 | 3 días seguidos sin datos | `missing`, luego `stale`, y la recuperación |
-| S6 | Marte: enlace con la Tierra caído 14 días | La revisión a bordo sigue funcionando; la cola se vacía al volver, en orden y sin duplicados |
+| S6 | Escenario Marte con blackout simulado y navegador sin red | Repetición, solicitud local y recarga funcionan. No simula el paso de 14 días ni entrega por cola; transporte diferido |
 
 Los valores de los escenarios son supuestos de simulación, no datos fisiológicos reales.
 
@@ -73,5 +80,5 @@ Añade siempre un párrafo de limitaciones: datos simulados, sin validación cl�
 ## Definición de hecho
 
 - [ ] `node --test` (o el comando del proyecto) pasa sin red.
-- [ ] S1–S6 se reproducen con la semilla documentada.
+- [ ] S1–S5 y el flujo local de S6 se reproducen; transporte futuro se etiqueta como no implementado.
 - [ ] La tabla de métricas y las limitaciones están en el README y en `docs/RESULTADOS.md`.

@@ -2,8 +2,15 @@
 name: astravital-reto
 description: Scope and plan ASTRAVITAL against the official Space Apps 2026 challenge "Create Health Monitoring Software for Astronauts on Space Missions" - challenge objectives, NASA HRP resources for the NASA Data field, Moon/Mars environment fit, 48-hour MVP priorities and feature-to-rubric mapping. Use when choosing features, indicators or MVP scope, or checking challenge relevance.
 ---
-
 # ASTRAVITAL frente al reto oficial
+
+> Dirección vigente 2026-11-15: visor simulado como experiencia principal y consola como respaldo. Leer `docs/DECISION-VISOR.md`. No afirmar integración SPECS, ASR offline, monitoreo en segundo plano ni detección ósea; el audio abierto no es conducción ósea.
+
+
+## Estado real y alcance de esta skill (2026-11-14)
+
+El código actual demuestra solo FC en reposo con datos simulados. Temperatura cutánea, adaptadores físicos y transporte Tierra quedan fuera del MVP demostrado. Los requisitos y su estado vigente están en `docs/REQUISITOS-MVP.md`; no implementar capacidades nuevas por una lista histórica de esta skill.
+
 
 Reto: **Create Health Monitoring Software for Astronauts on Space Missions** · https://www.spaceappschallenge.org/2026/challenges/health-monitoring-software/
 
@@ -20,7 +27,7 @@ Reto: **Create Health Monitoring Software for Astronauts on Space Missions** · 
 
 - Una herramienta **visual** para que el astronauta **evalúe su propia salud** y reciba orientación para actuar.
 - Contexto: los 5 peligros del HRP (radiación, aislamiento y confinamiento, distancia a la Tierra, campos de gravedad, entorno cerrado hostil).
-- Indicadores que cita el reto: presión arterial, frecuencia cardiaca, glucosa (mg/dL), temperatura corporal, horas de sueño y estado de ánimo. El MVP solo usa dos físicos (ver abajo).
+- Indicadores que cita el reto: presión arterial, frecuencia cardiaca, glucosa (mg/dL), temperatura corporal, horas de sueño y estado de ánimo. El prototipo demostrado solo usa FC en reposo; otros indicadores quedan diferidos.
 - Entrada libre: teclado, clics o cámara.
 - Preguntas guía: qué se puede medir en el espacio, por qué hace falta cada examen, cómo afectan los peligros a cada indicador, cuándo avisar a la tripulación o a los flight surgeons y qué acciones previenen un estado crítico.
 - El reto menciona entornos como **nave, estación, rover o base en otro planeta o luna**: encaja con nuestro objetivo de estación lunar y base en Marte.
@@ -38,14 +45,14 @@ Para sumar en Relevance, el conocimiento de la NASA debe **cambiar el producto**
 
 ## MVP: un caso completo (medición → calidad y contexto → desviación explicada → revisión humana)
 
-1. **Datos:** dos indicadores físicos por defecto, **FC en reposo** con protocolo definido y **temperatura cutánea** del chaleco, desde un adaptador simulado con semilla al registro canónico. Entrada manual para volver a medir.
+1. **Datos:** un indicador demostrado, **FC en reposo**, con generador simulado de semilla fija y contrato interno `Reading`. La repetición también es simulada, no entrada manual ni adaptador físico.
 2. **Motor local:** línea base por persona y contexto, Z-Score, tendencia descriptiva **sin cuenta atrás**, estados `ok / watch / alert` y estados de dato `missing / stale / suspect / device-fault / insufficient-history`. Línea base congelada mientras hay una alerta abierta.
 3. **Explicación y revisión humana:** regla y versión visibles, "statistical deviation, not a diagnosis", solo pasos de procedimiento (volver a medir, pedir revisión al CMO) y solicitud de revisión que funciona con la Tierra caída.
-4. **Offline:** PWA con service worker, IndexedDB y export/import. El perfil de enlace `moon` / `mars` es opcional si no desplaza el recorrido principal.
+4. **Offline:** App estática con service worker, IndexedDB para eventos de demo y export/import. El perfil de enlace `moon` / `mars` es opcional si no desplaza el recorrido principal.
 5. **Interfaz:** tarjetas con texto e icono (no solo color) e historial con la banda personal. Boceto en `docs/REQUISITOS-MVP.md`.
-6. **Pruebas y métricas:** escenarios S1–S6 de `astravital-qa`, registrados en `docs/RESULTADOS.md`.
+6. **Pruebas y métricas:** escenarios S1–S5 y flujo local de S6 de `astravital-qa`, registrados en `docs/RESULTADOS.md`.
 
-**Fuera del MVP:** ánimo y psicología, voz o chatbot, diagnóstico, tratamientos, pronóstico individual, ML opaco, hardware real, DTN real, gemelo digital y afirmaciones clínicas.
+**Fuera del MVP demostrado:** temperatura cutánea y demás indicadores, entrada manual real, sincronización y outbox Tierra, ánimo y psicología, voz o chatbot, diagnóstico, tratamientos, pronóstico individual, ML opaco, hardware real, DTN real, gemelo digital y afirmaciones clínicas.
 
 ## Funciones frente a la rúbrica
 
