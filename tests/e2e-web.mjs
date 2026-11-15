@@ -253,6 +253,11 @@ try {
     await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: true});
     check(`Ground fits a ${width} px viewport`, await js(`window.innerWidth === ${width} &&
       document.documentElement.scrollWidth <= window.innerWidth + 1`));
+    check(`Ground anatomy fits its panel at ${width} px`, await js(`(() => {
+      const stage = document.getElementById('ground-scene').getBoundingClientRect();
+      const figure = document.querySelector('#ground-scene .anatomy-figure').getBoundingClientRect();
+      return figure.height > 100 && figure.top >= stage.top - 1 && figure.bottom <= stage.bottom + 1 && figure.left >= stage.left - 1 && figure.right <= stage.right + 1;
+    })()`));
   }
   const groundExternal = externalRequests();
   check('Ground makes no requests to other domains', groundExternal.length === 0, groundExternal.join(', '));
