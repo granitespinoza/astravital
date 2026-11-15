@@ -9,6 +9,7 @@ import {expectedEvent} from '../app/workflow.js';
 import {getBoneScenario, boneScenarios, BONE_CONTRACT_ID} from '../app/bone-data.js';
 import {assessBone} from '../app/bone.js';
 import {createMission} from './mission.mjs';
+import {createCaseMessages} from './case-messages.mjs';
 
 const defaults = {cardiovascular:'deviation', bone:'change'};
 const parse = value => JSON.parse(value);
@@ -127,6 +128,7 @@ export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.s
     saveSession(id,context) { database.prepare('INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET context_json=excluded.context_json,updated_at=excluded.updated_at').run(id,json(context),now()); },
     close() { database.close(); },
   };
+  api.caseMessages = createCaseMessages(database,transaction,clock);
   api.mission = mission ? createMission({database,transaction,insertObservation,observations,seed,clock,reportId,
     boneState:() => api.getState('bone')}) : null;
   return api;

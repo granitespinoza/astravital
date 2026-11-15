@@ -27,7 +27,7 @@ async function body(req,limit){
 function send(res,status,value){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(value));}
 
 const missionAssets = new Set(['/mission.html','/mission.css','/mission.js','/health-status.js','/experience.css',
-  '/overpass-regular.woff2','/overpass-bold.woff2','/fira-sans-bold.woff2']);
+  '/overpass-regular.woff2','/overpass-bold.woff2','/fira-sans-bold.woff2','/case-messages.js','/case-thread.js','/case-thread.css']);
 const loopback = address => ['127.0.0.1','::1','::ffff:127.0.0.1'].includes(address);
 
 export async function startApplication({port=0,host='127.0.0.1',dbPath=process.env.DB_PATH ?? resolve(root,'.runtime/demo.sqlite'),mission=false,lanAddress}={}){
@@ -57,6 +57,10 @@ export async function startApplication({port=0,host='127.0.0.1',dbPath=process.e
           if (route === 'GET ping') { send(res,200,{ok:true,simulated:true});return; }
           const token = req.headers.authorization?.match(/^Bearer ([a-f0-9]{48})$/)?.[1];
           const crewId = pairs.get(token);
+          if (route === 'POST messages' && crewId) {
+            const input=JSON.parse((await body(req,8000)).toString('utf8'));
+            send(res,200,db.caseMessages({...input,crewId,sender:'crew',actor:'crew'}));return;
+          }
           if (route === 'GET crew' || route === 'POST readings') {
             if (!crewId) { send(res,401,{error:'Open a current crew link from the CMO console.'});return; }
             const value = route === 'GET crew' ? db.mission.getCrew(crewId)
@@ -98,6 +102,11 @@ export async function startApplication({port=0,host='127.0.0.1',dbPath=process.e
       if(req.method==='GET'&&url.pathname==='/api/state'){send(res,200,db.getState(url.searchParams.get('domain')??'cardiovascular',url.searchParams.get('scenario')??undefined));return;}
       if(req.method==='GET'&&url.pathname==='/api/evidence'){send(res,200,db.getEvidence());return;}
       if(req.method==='GET'&&url.pathname==='/api/reviews'){send(res,200,db.listReviews());return;}
+      if(req.method==='POST'&&url.pathname==='/api/messages'){
+        if(!loopback(id) || req.headers.authorization){send(res,403,{error:'Use your paired crew link or the mission laptop.'});return;}
+        const input=JSON.parse((await body(req,8000)).toString('utf8'));
+        send(res,200,db.caseMessages(input));return;
+      }
       if(req.method==='POST'&&url.pathname==='/api/assistant'){
         const input=JSON.parse((await body(req,16000)).toString('utf8'));
         if(typeof input.text!=='string'||!input.text.trim()||input.text.length>1000)throw new Error('Provide a message up to 1000 characters.');

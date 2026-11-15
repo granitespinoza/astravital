@@ -9,7 +9,8 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./experience.css?v=17">
   <link rel="stylesheet" href="./mission.css?v=18">
-  <script type="module" src="./mission.js?v=17"></script>
+  <link rel="stylesheet" href="./case-thread.css?v=3">
+  <script type="module" src="./mission.js?v=18"></script>
 </head>
 <body>
   <header class="mission-header">
@@ -39,6 +40,7 @@
         <button type="submit" class="mission-primary" id="send-sample" disabled>Send simulated sample</button>
       </form>
       <p id="queue" role="status"></p>
+      <div id="crew-conversation"></div>
     </section>
 
     <div id="cmo-panel" hidden>
@@ -56,6 +58,7 @@
         <p id="review-count"></p>
         <div id="roster" class="mission-roster"></div>
       </section>
+      <section id="cmo-conversation" aria-label="Onboard case conversation"></section>
     </div>
 
     <section id="ground-panel" aria-label="Earth doctor dashboard" hidden>
@@ -65,6 +68,7 @@
         <span id="ground-shared-case" hidden></span>
         <span class="pill" id="ground-link-state">EARTH LINK · SIMULATED</span>
       </div>
+      <section id="ground-case-card" class="case-overview" aria-label="Crew case summary"></section>
       <div class="ground-grid">
         <figure class="mission-panel ground-anatomy">
           <div class="ground-anatomy-head">
@@ -98,13 +102,14 @@
           <div id="ground-bone"></div>
         </section>
       </div>
+      <section id="ground-conversation" aria-label="Medical case conversation"></section>
       <div class="ground-grid ground-lower">
         <section class="mission-panel">
           <h2>Priority inbox</h2>
           <ul id="ground-inbox" class="ground-list"></ul>
         </section>
         <section class="mission-panel">
-          <h2>Crew timeline</h2>
+          <h2>Internal review timeline</h2>
           <ul id="ground-timeline" class="ground-list"></ul>
         </section>
         <section class="mission-panel">
@@ -114,7 +119,7 @@
         <section class="mission-panel">
           <h2>Flight surgeon actions</h2>
           <form id="ground-action-form">
-            <label for="ground-note">Local review note</label>
+            <label for="ground-note">Internal review note · not sent to the astronaut</label>
             <textarea id="ground-note" rows="2" maxlength="500" placeholder="Add context for the local record"></textarea>
             <div class="ground-action-buttons">
               <button type="button" id="ground-ack" disabled>Acknowledge</button>

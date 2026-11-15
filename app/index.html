@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- AI assistance: OpenAI Codex. See docs/SI-USAGE.md. -->
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#030405"><title>ASTRAVITAL · Astra</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./experience.css?v=17"><script type="module" src="./experience.js?v=18"></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#030405"><title>ASTRAVITAL · Astra</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./experience.css?v=17"><link rel="stylesheet" href="./case-thread.css?v=3"><script type="module" src="./experience.js?v=20"></script></head>
 <body><a class="skip" href="#experience">Skip to experience</a>
 <header><a class="brand" href="./"><span>✦</span> ASTRAVITAL</a><span class="prototype">GLASSES EXPERIENCE / WORKING PROTOTYPE</span><span id="api-status">Connecting…</span></header>
 <main id="experience">
@@ -8,6 +8,7 @@
 <p class="web-demo-note" id="web-demo-note" hidden>Web demo: the same rules and synthetic data run entirely in your browser. Voice input, the local voice and the SQLite database run in the full local app (see the README). <button type="button" class="reset-demo" id="reset-demo">Reset demo</button></p>
 <p class="web-demo-note" id="mission-entry" hidden><a href="./mission.html">Open the onboard mission console ↗</a></p>
 <p class="web-demo-note" id="shared-case"><span id="shared-case-label" hidden></span><a id="earth-doctor-link" href="./mission.html#ground">Earth doctor view ↗</a></p>
+<section id="crew-overview" class="case-overview" aria-label="Your current case"></section>
 <div class="experience-grid">
 <section class="visual" aria-label="Glasses display emulator">
 <div class="scene-top"><span>CREW 03 <i></i> EARTH LINK OFFLINE</span><div class="scene-switch"><button type="button" id="show-focus" aria-pressed="true">Wearer view</button><button type="button" id="show-body" aria-pressed="false">Body context</button><button type="button" id="show-glasses" aria-pressed="false">Device</button></div></div>
@@ -16,7 +17,7 @@
 <div class="view-hint" id="view-hint">SIMULATED VIEW THROUGH THE LENSES</div>
 <div class="device-notes" hidden id="device-notes"><span>OPTICAL DISPLAY</span><span>MICROPHONE INPUT</span><span>OPEN-EAR AUDIO</span></div>
 <div class="visor-status" id="visor-status"><p class="eyebrow">YOUR LATEST CHECKS</p><div class="status-pair"><button id="hud-heart" type="button" class="status-chip" data-level="unknown"><span class="status-light"></span><span><small>HEART</small><strong id="hud-heart-status">Checking</strong></span><span class="level-bars" aria-hidden="true"><i></i><i></i><i></i></span></button><button id="hud-bone" type="button" class="status-chip" data-level="unknown"><span class="status-light"></span><span><small>BONES</small><strong id="hud-bone-status">Checking</strong></span><span class="level-bars" aria-hidden="true"><i></i><i></i><i></i></span></button></div><p class="visor-note">Indicators describe the demo measurements.</p></div>
-<div class="visor-caption" id="visor-caption"><span class="mini-orb" aria-hidden="true"></span><div><small>ASTRA</small><p id="scene-summary">I'm here when you need me.</p></div></div>
+<div class="visor-caption" id="visor-caption"><span class="mini-orb" aria-hidden="true"></span><div><small>ASTRA · YOUR CURRENT CHECK</small><h2 id="hud-focus-title">Heart · Checking</h2><p id="scene-summary">I'm here when you need me.</p><p id="hud-observed" class="hud-observed"></p><button type="button" id="hud-next-action" class="hud-primary">Check again</button><div class="hud-quick-actions"><button type="button" id="hud-ask">Ask Astra</button><button type="button" id="hud-details">Details</button><button type="button" id="hud-messages">Messages</button></div></div></div>
 <div class="body-label" id="body-label" hidden><span id="scene-domain">HEART CONTEXT</span><small>Illustrative anatomy · AI-generated image · not a scan</small></div>
 <div class="scene-foot"><span>OPTICAL HUD CONCEPT · NOT CONNECTED TO PHYSICAL GLASSES</span><span id="scene-evidence">SEEDED LOCALLY</span></div>
 </section>
@@ -30,6 +31,7 @@
 <details class="text-input"><summary>Prefer to type?</summary><form id="message-form"><label class="sr-only" for="message">Message to Astra</label><input id="message" placeholder="Hey Astra, how am I doing?" autocomplete="off" maxlength="1000"><button type="submit">Send</button></form></details>
 <div class="assistant-foot"><span id="save-status">Your review requests stay on this device.</span><button type="button" id="toggle-evidence" class="text-button" aria-expanded="false">Medical details ↗</button></div>
 </section></div>
+<section id="crew-conversation" aria-label="Your medical case conversation"></section>
 <section class="evidence-section" id="evidence-detail" hidden aria-label="Medical evidence"><div class="evidence-title"><div><p class="eyebrow">FOR MEDICAL REVIEW</p><h2>Measurements behind the summary.</h2></div><a href="/api/reviews" target="_blank" rel="noreferrer">Saved requests ↗</a></div><div class="measurement"><span id="reading-label">STATE</span><strong id="reading-value">—</strong><span id="reading-unit"></span><small id="quality"></small></div><p id="state-copy"></p><p id="medical-explanation"></p><div class="pipeline"><span>Bronze <strong id="bronze-count">—</strong></span><i>→</i><span>Silver <strong id="silver-count">—</strong></span><i>→</i><span>Gold <strong id="gold-count">—</strong></span><span>Quarantined <strong id="quarantine-count">—</strong></span></div><p id="evidence-summary"></p><details><summary>Inspect source records</summary><pre id="evidence-json"></pre></details></section>
 <footer><span>ASTRAVITAL / LOCAL-FIRST PROTOTYPE</span><span>Simulated measurements. No diagnosis or clinician delivery.</span><a href="/health" target="_blank" rel="noreferrer">System status ↗</a></footer>
 </main></body></html>

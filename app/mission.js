@@ -1,5 +1,7 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 import {healthStatus, healthStatusText, repeatOutcome} from './health-status.js';
+import {browserMessages,messageContext} from './case-messages.js';
+import {createCaseThread} from './case-thread.js';
 
 const byId = id => document.getElementById(id);
 const phoneToken = new URLSearchParams(location.hash.slice(1)).get('crew');
@@ -18,6 +20,14 @@ let busy = false;
 let signature;
 let links = [];
 let demo, ground, groundModule, modeReady = false;
+let localService=false, medicalThread,crewThread,cmoThread,cmoPayload;
+const browserStore=browserMessages();
+async function messageRequest(input,context) {
+  if(demo&&!localService)return browserStore.request(input,context);
+  const headers={'Content-Type':'application/json',...(isPhone?{Authorization:'Bearer '+phoneToken}:{})};
+  const response=await fetch(isPhone?'./api/mission/messages':'./api/messages',{method:'POST',headers,body:JSON.stringify(input)});
+  const value=await response.json();if(!response.ok)throw new Error(value.error??'The message could not be saved.');return value;
+}
 
 const requestId = () => Array.from(crypto.getRandomValues(new Uint8Array(16)),
   byte => byte.toString(16).padStart(2,'0')).join('');
@@ -105,7 +115,10 @@ function render(payload) {
     byId('send-sample').disabled = false;
     byId('heading').textContent = payload.name;
     byId('crew-state').replaceChildren(readingsCard(payload,false));
+    crewThread??=createCaseThread(byId('crew-conversation'),{request:messageRequest});
+    crewThread.render(messageContext(payload,'cardiovascular','crew'));
   } else if (active === 'cmo') {
+    cmoPayload=payload;
     if (!links.length || links[0].url !== payload.links[0]?.url) {
       const selected = byId('member').value;
       links = payload.links;
@@ -122,6 +135,7 @@ function render(payload) {
       : 'Laptop preview. Start with the laptop’s Wi-Fi IPv4 address to pair a phone.';
     byId('review-count').textContent = payload.reviewCount + ' review requests saved in the glasses experience.';
     byId('roster').replaceChildren(...payload.crew.map(member => readingsCard(member,true)));
+    updateCmoConversation();
   } else {
     ground.render(payload,Boolean(demo));
     const cards = payload.reports.map(report => {
@@ -166,10 +180,11 @@ async function refresh() {
       }
     }
     if (view === 'ground' && !ground) {
-      groundModule ??= import('./ground-view.js?v=17');
+      groundModule ??= import('./ground-view.js?v=18');
       const {createGroundView} = await groundModule;
       if (view !== active) return;
-      ground = createGroundView({prepareRequestId:requestId, perform:async draft => {
+      medicalThread??=createCaseThread(byId('ground-conversation'),{request:messageRequest,localOnly:Boolean(demo&&!localService)});
+      ground = createGroundView({prepareRequestId:requestId,onCase:context=>medicalThread.render(context), perform:async draft => {
         const outcome = await request('ground-action',draft);
         await poll();
         return outcome;
@@ -213,6 +228,12 @@ async function perform(path,data,message) {
 
 function updatePair() {
   byId('pair-link').value = links.find(link => link.id === byId('member').value)?.url ?? '';
+  updateCmoConversation();
+}
+function updateCmoConversation(){
+  const member=cmoPayload?.crew.find(item=>item.crewId===byId('member').value);if(!member)return;
+  cmoThread??=createCaseThread(byId('cmo-conversation'),{request:messageRequest});
+  cmoThread.render(messageContext(member,'cardiovascular','cmo'));
 }
 
 function selectView(view) {
@@ -240,6 +261,7 @@ async function initStaff() {
       const response = await fetch('./health',{cache:'no-store',signal:AbortSignal.timeout(3000)});
       if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
         const health = await response.json();
+        localService=health.ok===true;
         modeReady = health.mission === true;
       }
     } catch { /* No local mission profile answered the capability check. */ }
