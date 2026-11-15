@@ -10,7 +10,8 @@ export function messageContext(member,domain,role) {
   const evidenceId=state?.latestEvidenceId??state?.evidenceIds?.find(id=>current?.id && id.endsWith(':'+current.id));
   return {crewId:member.crewId??current?.crewId??'crew-03',name:member.name??'Alex Morgan',domain,role,evidenceId,
     summary:domain==='bone' ? state?.decision?.message??'Please review the available bone measurements.' :
-      (state?.reading?`${role==='crew'?'My':'The attached'} resting pulse measurement is ${state.reading.value} bpm. `:'')+(state?.decision?.reason??'Please review the attached evidence.')};
+      (state?.reading?`${role==='crew'?'My':'The attached'} resting pulse measurement is ${state.reading.value} bpm. `:'')+
+      ((state?.performed||state?.repeated)&&['watch','alert'].includes(state?.decision?.level)?'The repeat check used the original reference and the change is still present.':state?.decision?.reason??'Please review the attached evidence.')};
 }
 export function messageLabel(message) {
   if (message.localOnly) return message.status === 'reviewed' ? 'Reviewed locally · Not delivered' : 'Saved locally · Not delivered';

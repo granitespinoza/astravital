@@ -7,6 +7,17 @@
 .case-actions{display:flex;flex-wrap:wrap;gap:.5rem}.case-preview{padding:1rem;background:#162526;border:1px solid var(--cyan);border-radius:12px}.case-preview button{margin:.3rem .5rem .3rem 0}.case-feedback{color:var(--cyan);min-height:1.5em}.case-thread button{white-space:normal}
 .case-overview{border:1px solid #455552;border-radius:16px;background:linear-gradient(120deg,#132325,#080d10);padding:clamp(1rem,3vw,1.5rem);margin:1rem 0}.case-overview h2{margin:.25rem 0 .7rem}.case-overview .case-identity{display:flex;flex-wrap:wrap;gap:.6rem 1.5rem;justify-content:space-between;align-items:start}.case-overview .case-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.case-overview dt{color:#aebcb8;font-size:.8rem}.case-overview dd{margin:.3rem 0;overflow-wrap:anywhere}.case-overview .case-next{font-size:1.1rem;color:var(--cyan)}
 .hud-quick-actions{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}.hud-quick-actions button{min-height:44px;padding:.5rem .8rem;font-size:.8rem}.visor-caption h2{font:700 clamp(1.25rem,2vw,2rem) Fira,system-ui,sans-serif;margin:.35rem 0}.visor-caption .hud-observed{font-size:.7rem;color:#aebcb8;margin:.45rem 0}.visor-caption .hud-primary{background:#d9e9df;color:#05100d;border:0;margin-top:.6rem;font-weight:700}.visual[data-mode=focus] .visor-caption{bottom:10%;max-width:calc(100% - 4rem)}.visual[data-mode=focus] .status-chip[aria-current=false]{opacity:.7}.visual[data-mode=focus] .status-chip[aria-current=true]{border-color:var(--state)}
-.visor-caption button{pointer-events:auto}.visual[data-mode=focus] .visor-status{display:none}.visual[data-mode=focus] .visor-caption{top:145px;bottom:auto;max-height:calc(100% - 205px);overflow:auto;pointer-events:auto}.visual[data-mode=body] .visor-caption :is(h2,.hud-observed,.hud-primary,.hud-quick-actions){display:none}
+.visor-caption button{pointer-events:auto}.visual[data-mode=focus] .visor-caption{top:268px;bottom:auto;max-height:calc(100% - 322px);overflow:auto;pointer-events:auto}.visual[data-mode=body] .visor-caption :is(h2,.hud-observed,.hud-primary,.hud-quick-actions){display:none}
 @media(max-width:760px){.case-overview .case-overview-grid{grid-template-columns:1fr}.case-thread{padding:1rem}.visual[data-mode=focus] .visor-caption{max-width:none;left:1rem;right:1rem;bottom:4rem}.visor-caption .mini-orb{display:none}.hud-quick-actions button{flex:1}}
-@media(max-width:760px){.visual[data-mode=focus] .visor-caption{top:125px;bottom:auto;max-height:calc(100% - 170px)}}
+@media(max-width:760px){.visual[data-mode=focus] .visor-caption{top:232px;bottom:auto;max-height:calc(100% - 272px)}.visor-caption .hud-observed{display:none}.visual[data-mode=focus] .visor-note{display:none}}
+/* AI assistance: Anthropic Claude. Visual polish: compact case card, readable primary action, highlighted active chip. */
+.visor-caption .hud-primary:hover:not(:disabled){background:#eef6f1;color:#05100d}
+.visual[data-mode=focus] .status-chip[aria-current=true]{box-shadow:0 0 0 1px var(--state),0 0 22px color-mix(in srgb,var(--state) 30%,transparent)}
+.case-overview{padding:.85rem 1.2rem;margin:.6rem 0 1rem}
+.case-overview .case-identity{align-items:center}
+.case-overview .case-eyebrow{display:block;font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:#8fa6a8}
+.case-overview h2{margin:.2rem 0 0;font:700 1.08rem Fira,system-ui,sans-serif;color:#eef3ef}
+.case-overview h2[data-level]{color:var(--state,#eef3ef)}
+.case-overview .case-next{margin:.45rem 0 .2rem;font-size:.9rem}
+.case-overview #shared-case-label{display:block;font-size:.72rem;color:#aebcb8}
+.case-overview #earth-doctor-link{color:var(--cyan);font-size:.85rem;white-space:nowrap}

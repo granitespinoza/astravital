@@ -22,11 +22,15 @@ function renderCrewCase(){
  const observed=state.current?.observedAt??state.reading?.observedAt;
  $('hud-observed').textContent='Simulated measurement · '+(observed?new Date(observed).toISOString().slice(0,16).replace('T',' ')+' UTC':'No usable measurement');
  for(const [key,id]of[['cardiovascular','heart'],['bone','bone']])$('hud-'+id).setAttribute('aria-current',String(domain===key));
- const overview=$('crew-overview');overview.replaceChildren();
- const heading=document.createElement('h2');heading.textContent='Alex Morgan · Your current check';
+ // AI assistance: Anthropic Claude. One compact case card keeps the glasses view above the fold.
+ const overview=$('crew-overview'),link=$('earth-doctor-link'),label=$('shared-case-label');overview.replaceChildren();
+ const head=document.createElement('div');head.className='case-identity';const title=document.createElement('div');
+ const eyebrow=document.createElement('small');eyebrow.className='case-eyebrow';eyebrow.textContent='Crew 03 · exploration mission simulation';
+ const heading=document.createElement('h2');heading.textContent='Alex Morgan · '+(domain==='bone'?'Left hip':'Heart')+' · '+indicator(state).label;heading.dataset.level=indicator(state).level;
+ title.append(eyebrow,heading);head.append(title);if(link)head.append(link);
  const summary=document.createElement('p');summary.className='case-next';summary.textContent=brief(state);
- const note=document.createElement('p');note.className='case-hint';note.textContent='Exploration mission simulation · '+(domain==='bone'?'Left hip · periodic scan':'Heart · resting pulse')+' · Details and messages are available below.';
- overview.append(heading,summary,note);
+ overview.append(head,summary);if(label)overview.append(label);$('shared-case').hidden=true;
+ if(!busy)$('scene-summary').textContent=brief(state);
  if(evidenceDomain!==domain){$('medical-explanation').textContent='';evidenceDomain=domain;}
 }
 const scene=createScene($('scene'),{onDomain:next=>setDomain(next),onEnter:()=>enterLenses()});
