@@ -5,6 +5,7 @@ import { ORIGIN, sample, scenarios } from './scenarios.js';
 import { openStorage, readEvents, appendEvents } from './storage.js';
 import { drawHistory } from './chart.js';
 import { createExplorer } from './explorer.js';
+import {healthStatusText} from './health-status.js';
 
 const byId = id => document.getElementById(id);
 const settings = policy();
@@ -93,7 +94,7 @@ function render() {
   const state = level ?? quality;
 
   byId('status').dataset.state = state;
-  byId('status').textContent = labels[state];
+  byId('status').textContent = healthStatusText(state);
   byId('value').textContent = measurement?.value ?? '—';
   byId('baseline').textContent = baseline?.n
     ? baseline.mean.toFixed(1) + ' ± ' + baseline.sd.toFixed(1) + ' bpm' : '—';

@@ -7,14 +7,14 @@
   <meta name="theme-color" content="#030405">
   <title>ASTRAVITAL · Mission console</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./experience.css">
-  <link rel="stylesheet" href="./mission.css">
-  <script type="module" src="./mission.js"></script>
+  <link rel="stylesheet" href="./experience.css?v=13">
+  <link rel="stylesheet" href="./mission.css?v=13">
+  <script type="module" src="./mission.js?v=13"></script>
 </head>
 <body>
   <header class="mission-header">
     <span class="brand"><span>✦</span> ASTRAVITAL</span>
-    <span class="eyebrow">SIMULATED DATA</span>
+    <span class="eyebrow mission-simulated">SIMULATED DATA — not a medical device</span>
     <a id="glasses-link" href="./" hidden>Glasses experience ↗</a>
   </header>
   <main class="mission">
@@ -23,7 +23,7 @@
     <p id="connection" role="status">Connecting to the mission laptop…</p>
     <nav id="staff-nav" aria-label="Mission views" hidden>
       <button type="button" id="show-cmo" aria-pressed="true">CMO</button>
-      <button type="button" id="show-ground" aria-pressed="false">Ground simulation</button>
+      <button type="button" id="show-ground" aria-pressed="false">Earth doctor view</button>
     </nav>
 
     <section id="crew-panel" class="mission-panel" hidden>
@@ -58,18 +58,87 @@
       </section>
     </div>
 
-    <section id="ground-panel" class="mission-panel" hidden>
-      <h2>Report queue and simulated inbox</h2>
-      <p class="mission-hint">Queued reports remain onboard. Simulated receipt reveals their contents here.</p>
-      <form id="report-form">
-        <label for="report-kind">Report type</label>
-        <select id="report-kind">
-          <option value="daily">Daily overview</option>
-          <option value="weekly">Weekly overview</option>
-        </select>
-        <button type="submit" class="mission-primary">Queue simulated report</button>
-      </form>
-      <div id="reports" class="mission-reports"></div>
+    <section id="ground-panel" aria-label="Earth doctor dashboard" hidden>
+      <div class="ground-toolbar">
+        <label for="ground-member">Crew member</label>
+        <select id="ground-member" disabled></select>
+        <span id="ground-shared-case" hidden></span>
+        <span class="pill" id="ground-link-state">EARTH LINK · SIMULATED</span>
+      </div>
+      <div class="ground-grid">
+        <figure class="mission-panel ground-anatomy">
+          <div class="ground-anatomy-head">
+            <h2>Monitored anatomy</h2>
+            <div class="ground-zone-actions" role="group" aria-label="Monitored regions">
+              <button type="button" id="ground-heart-button" aria-pressed="true" aria-controls="ground-heart-panel">♥ Heart</button>
+              <button type="button" id="ground-bone-button" aria-pressed="false" aria-controls="ground-bone-panel">◇ Bones</button>
+            </div>
+          </div>
+          <div id="ground-scene" data-region="heart" data-zoom="1" aria-busy="true">
+            <div class="scene-fallback">Preparing the anatomy view</div>
+          </div>
+          <div class="ground-anatomy-foot">
+            <figcaption>Illustrative anatomy · not a scan</figcaption>
+            <div class="ground-zoom" id="ground-zoom" role="group" aria-label="Anatomy magnification" hidden>
+              <button type="button" id="ground-zoom-out" aria-label="Zoom out">−</button>
+              <output id="ground-zoom-level" aria-live="polite">1×</output>
+              <button type="button" id="ground-zoom-in" aria-label="Zoom in">+</button>
+              <button type="button" id="ground-zoom-reset">Full body</button>
+            </div>
+          </div>
+        </figure>
+        <section class="mission-panel ground-detail" id="ground-heart-panel" aria-labelledby="ground-heart-title">
+          <h2 id="ground-heart-title">Resting heart rate</h2>
+          <div id="ground-heart"><p class="mission-hint">Waiting for a received report.</p></div>
+          <h3>Last 14 sols</h3>
+          <div id="ground-history"></div>
+        </section>
+        <section class="mission-panel ground-detail" id="ground-bone-panel" aria-labelledby="ground-bone-title" hidden>
+          <h2 id="ground-bone-title">Bone density</h2>
+          <div id="ground-bone"></div>
+        </section>
+      </div>
+      <div class="ground-grid ground-lower">
+        <section class="mission-panel">
+          <h2>Priority inbox</h2>
+          <ul id="ground-inbox" class="ground-list"></ul>
+        </section>
+        <section class="mission-panel">
+          <h2>Crew timeline</h2>
+          <ul id="ground-timeline" class="ground-list"></ul>
+        </section>
+        <section class="mission-panel">
+          <h2>Evidence</h2>
+          <div id="ground-evidence"></div>
+        </section>
+        <section class="mission-panel">
+          <h2>Flight surgeon actions</h2>
+          <form id="ground-action-form">
+            <label for="ground-note">Local review note</label>
+            <textarea id="ground-note" rows="2" maxlength="500" placeholder="Add context for the local record"></textarea>
+            <div class="ground-action-buttons">
+              <button type="button" id="ground-ack" disabled>Acknowledge</button>
+              <button type="submit" id="ground-add-note" disabled>Add note</button>
+              <button type="button" id="ground-teleconsult" disabled>Request teleconsult</button>
+            </div>
+          </form>
+          <p class="mission-hint">Actions are saved locally. A simulated teleconsult request does not contact anyone.</p>
+          <p id="ground-action-result" role="status" class="mission-feedback"></p>
+        </section>
+      </div>
+      <section class="mission-panel">
+        <h2>Simulated Earth link</h2>
+        <p class="mission-hint">Reports are queued onboard and appear on simulated receipt. One-way delay model: 3–22 minutes.</p>
+        <form id="report-form">
+          <label for="report-kind">Report type</label>
+          <select id="report-kind">
+            <option value="daily">Daily overview</option>
+            <option value="weekly">Weekly overview</option>
+          </select>
+          <button type="submit" class="mission-primary">Queue simulated report</button>
+        </form>
+        <div id="reports" class="mission-reports"></div>
+      </section>
     </section>
     <p id="action-result" role="status" class="mission-feedback"></p>
   </main>

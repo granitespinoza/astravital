@@ -18,6 +18,7 @@
     "verify": "npm run build && node --test",
     "test:browser": "node tests/browser.mjs",
     "test:functional": "node tests/functional-browser.mjs",
+    "test:e2e": "node tests/e2e-web.mjs",
     "predemo": "npm run build"
   },
   "dependencies": {

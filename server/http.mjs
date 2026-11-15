@@ -26,7 +26,7 @@ async function body(req,limit){
 }
 function send(res,status,value){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(value));}
 
-const missionAssets = new Set(['/mission.html','/mission.css','/mission.js','/experience.css',
+const missionAssets = new Set(['/mission.html','/mission.css','/mission.js','/health-status.js','/experience.css',
   '/overpass-regular.woff2','/overpass-bold.woff2','/fira-sans-bold.woff2']);
 const loopback = address => ['127.0.0.1','::1','::ffff:127.0.0.1'].includes(address);
 
@@ -69,8 +69,9 @@ export async function startApplication({port=0,host='127.0.0.1',dbPath=process.e
             const links = [...pairs].map(([key,id]) => ({id,url:`http://${address}:${server.address().port}/mission.html#crew=${key}`}));
             send(res,200,{...db.mission.getCmo(),links,lanEnabled:Boolean(lanAddress),reviewCount:db.listReviews().length});return;
           }
-          if (route === 'GET ground') { send(res,200,{reports:db.mission.getReports()});return; }
-          const action = {'POST ack':'acknowledge','POST reports':'queueReport','POST report-state':'updateReport'}[route];
+          if (route === 'GET ground') { send(res,200,db.mission.getGround());return; }
+          const action = {'POST ack':'acknowledge','POST reports':'queueReport','POST report-state':'updateReport',
+            'POST ground-action':'saveGroundAction'}[route];
           if (!action) { send(res,404,{error:'Unknown mission route.'});return; }
           const input = JSON.parse((await body(req,2048)).toString('utf8'));
           send(res,200,db.mission[action](input));return;

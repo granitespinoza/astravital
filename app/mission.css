@@ -1,24 +1,116 @@
 /* AI assistance: OpenAI Codex. Shared palette and fonts from experience.css. */
-.mission-header a { color: var(--cyan); }
+.mission {
+  --panel: #080c0ed9;
+  --panel-deep: #05090ad9;
+  --border: #455552;
+  --strong: #f5f6f5;
+  --text: #eef3ef;
+  --subtle: #c8d9d4;
+  --heart: #f6b3a7;
+  --bones: #b8e8d8;
+  --radius: 13px;
+  color: var(--text);
+}
+.mission-header { flex-wrap: wrap; gap: .6rem 1.4rem; }
+.mission-header a { color: var(--cyan); margin-left: auto; font-size: .85rem; }
+.mission-simulated { color: var(--muted); font-size: .68rem; }
 .mission { max-width: 1100px; padding: 2rem 1rem 3rem; }
-.mission h1 { font-size: clamp(2.25rem, 6vw, 4rem); line-height: 1; margin: .5rem 0 1rem; }
-.mission h2 { margin: 0 0 .65rem; }
+.mission[data-view="ground"] { max-width: 1440px; padding-inline: clamp(1rem,4vw,3.5rem); }
+.mission h1 { font-size: clamp(2.2rem, 4vw, 3.65rem); line-height: 1; margin: .5rem 0 .65rem; }
+.mission h2 { margin: 0 0 .65rem; font: 700 1.25rem/1.2 Fira,sans-serif; }
 .mission h3 { margin: .15rem 0 .55rem; }
 .mission p { line-height: 1.45; }
 .mission nav { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1.2rem 0; }
 .mission nav [aria-pressed="true"] { border-color: var(--lime); color: var(--lime); }
-.mission-panel { border: 1px solid var(--line); background: #0d1011; border-radius: 14px; padding: clamp(1rem, 3vw, 1.6rem); margin: 1rem 0; }
+.mission-panel { border: 1px solid var(--border); background: var(--panel); border-radius: var(--radius); padding: clamp(1rem, 3vw, 1.4rem); margin: 1rem 0; min-width: 0; }
 .mission form { display: flex; align-items: end; flex-wrap: wrap; gap: .75rem; margin: .9rem 0; }
 .mission label { display: block; margin: .55rem 0 .25rem; }
-.mission input, .mission select { min-height: 44px; padding: .65rem; color: inherit; background: #171a1b; border: 1px solid var(--line); border-radius: 8px; }
+.mission input, .mission select, .mission textarea { min-height: 44px; padding: .65rem; color: inherit; background: var(--panel-deep); border: 1px solid var(--border); border-radius: 8px; font: inherit; }
 #pair-link { display: block; width: 100%; }
-.mission-primary { background: var(--lime); color: #111; border-color: var(--lime); }
-.mission-primary:hover:not(:disabled) { background: #d1e206; }
+.mission-primary { background: var(--lime); color: Canvas; border-color: var(--lime); }
+.mission-primary:hover:not(:disabled) { background: var(--lime); filter: brightness(.9); }
 .mission-roster, .mission-reports { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit,minmax(min(100%,250px),1fr)); margin-top: .9rem; }
-.mission-card { border: 1px solid var(--line); background: #141719; border-radius: 10px; padding: 1rem; min-width: 0; }
+.mission-card { border: 1px solid var(--line); background: var(--panel-deep); border-radius: var(--radius); padding: 1rem; min-width: 0; }
 .mission-card details { margin-top: .7rem; overflow-wrap: anywhere; }
 .mission-card li { margin: .35rem 0; }
 .mission-value { font-size: 1.9rem; margin: .1rem 0; font-weight: 700; }
 .mission-status { color: var(--state,var(--cyan)); font-weight: 700; }
 .mission-hint, #connection { color: var(--muted); }
 .mission-feedback { color: var(--cyan); }
+.mission-feedback:empty { display: none; }
+.ground-toolbar, .ground-anatomy-head, .ground-zone-actions, .ground-action-buttons {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .6rem;
+}
+.ground-toolbar { margin-block: 1rem; }
+.ground-toolbar label { margin: 0; color: var(--subtle); }
+.ground-toolbar .pill { margin-left: auto; color: var(--cyan); font-size: .68rem; }
+#ground-shared-case { color: var(--cyan); font-size: .9rem; }
+.ground-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 1rem; }
+.ground-grid > .mission-panel { margin: 0; }
+.ground-lower { margin-top: 1rem; }
+.ground-anatomy {
+  display: flex; flex-direction: column;
+  background: radial-gradient(ellipse at 50% 53%,color-mix(in srgb,var(--cyan) 12%,transparent),var(--panel-deep) 68%);
+}
+.ground-anatomy-head { justify-content: space-between; }
+.ground-anatomy-head h2 { margin: 0; }
+.ground-zone-actions button { background: var(--panel-deep); }
+#ground-heart-button[aria-pressed="true"] { color: var(--heart); border-color: var(--heart); }
+#ground-bone-button[aria-pressed="true"] { color: var(--bones); border-color: var(--bones); }
+.ground-anatomy-foot, .ground-zoom { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
+.ground-anatomy-foot { justify-content:space-between; }
+.ground-zoom button { padding-inline:.7rem; min-width:44px; }
+.ground-zoom output { min-width:2.6rem; text-align:center; font-variant-numeric:tabular-nums; }
+#ground-scene {
+  --focus-x: calc(50% + 10cqh);
+  --focus-y: 38%;
+  --magnification: 1;
+  min-height: clamp(280px,34vw,445px); flex: 1; position: relative;
+  container-type: size; overflow: hidden; touch-action: pan-y;
+}
+#ground-scene[data-region="bone"] { --focus-x: calc(50% + 12cqh); --focus-y: 61%; }
+#ground-scene[data-zoom="2.5"] { --magnification: 2.5; }
+#ground-scene[data-zoom="4"] { --magnification: 4; }
+#ground-scene[data-zoom="6"] { --magnification: 6; }
+#ground-scene canvas {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: pan-y;
+  transition: transform .22s ease;
+  transform-origin: var(--focus-x) var(--focus-y);
+}
+#ground-scene:not([data-zoom="1"]) canvas {
+  transform: translate(calc(50% - var(--focus-x)),calc(50% - var(--focus-y))) scale(var(--magnification));
+  pointer-events: none;
+}
+.ground-anatomy figcaption { color: var(--muted); font-size: .78rem; }
+.ground-detail > h3 { margin-top: 1rem; font-size: .91rem; }
+.ground-detail .mission-value { font: 700 clamp(2.7rem,6vw,4.3rem)/1 Fira,sans-serif; margin: .45rem 0; color: var(--strong); }
+.ground-detail .mission-value small { font: 700 .9rem Overpass,sans-serif; color: var(--subtle); }
+.ground-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .65rem 1rem; }
+.ground-metrics div { border-top: 1px solid var(--line); padding-top: .5rem; }
+.ground-metrics dt { font-size: .75rem; color: var(--muted); }
+.ground-metrics dd { margin: .15rem 0 0; font-size: .91rem; overflow-wrap: anywhere; }
+.mission .status-chip { display: inline-flex; min-height: 0; padding: .45rem .65rem; border: 1px solid var(--border); color: var(--state); gap: .45rem; }
+.mission .status-chip .level-bars { margin-left: .3rem; }
+.ground-list { padding: 0; margin: 0; list-style: none; }
+.ground-row, .ground-event { padding: .55rem 0; border-top: 1px solid var(--line); }
+.ground-row button { text-align: left; width: 100%; background: var(--panel-deep); }
+.ground-row button .mission-status { display: block; }
+.ground-event time { display: block; font-size: .76rem; color: var(--muted); }
+.ground-event p { margin: .2rem 0; overflow-wrap: anywhere; }
+.ground-detail svg { display: block; width: 100%; max-height: 175px; }
+.ground-detail .chart-band { fill: color-mix(in srgb,var(--cyan) 17%,transparent); }
+.ground-detail .chart-grid { stroke: var(--line); }
+.ground-detail .chart-label { fill: var(--subtle); font-size: 11px; }
+.ground-detail .chart-line { fill: none; stroke: var(--cyan); stroke-width: 2; }
+.ground-detail .chart-point { fill: var(--cyan); }
+.ground-detail .chart-current { fill: var(--lime); }
+#ground-action-form { display: grid; gap: .55rem; }
+#ground-action-form textarea { width: 100%; resize: vertical; }
+#ground-evidence details, #ground-history details { margin: .5rem 0; overflow-wrap: anywhere; }
+.mission summary { cursor: pointer; color: var(--cyan); min-height: 30px; padding-block: .3rem; }
+.mission :is(select, textarea):focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+@media (max-width: 760px) {
+  .ground-grid { grid-template-columns: minmax(0,1fr); }
+  .ground-toolbar .pill { margin-left: 0; }
+  .mission-header a { margin-left: 0; }
+}

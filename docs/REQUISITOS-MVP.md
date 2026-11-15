@@ -31,7 +31,7 @@ The earlier browser-only R1–R5 checks remain historical in [RESULTADOS.md](RES
 | ID | Gate | Measurement | Interpretation |
 | --- | --- | --- | --- |
 | N1 | Zero external requests on the prepared local critical path | WAN-isolated API/recognizer/browser exercise with localhost accessible | Offline operation test; setup is excluded and documented |
-| N2 | Deterministic and idempotent data/actions | Fixed seed, stable evidence IDs, repeated seed and requestId tests | Software behavior under synthetic inputs |
+| N2 | Deterministic and idempotent data/actions | Reopen seed 142 and compare evidence IDs and counts. Retry an identical crew packet and local review action. Reject a reused ID with different input. | Local SQLite and web demo checks in [results](RESULTADOS.md#n2-determinism-and-idempotence). |
 | N3 | No false success after write failure | Failure injection and subsequent read-back | Persistence acknowledgement, not delivery |
 | N4 | Sensitive input stays out of routine logs | Inspect API/recognizer logs and retained files | No real patient data admitted in this public demo scope |
 | N5 | Capability degradation is explicit | Health/UI checks for missing/failed ASR and denied microphone | UI remains usable without voice |

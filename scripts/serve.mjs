@@ -5,7 +5,8 @@ import { extname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const assets = new URL('../app/', import.meta.url);
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.wav': 'audio/wav' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
+  '.woff2': 'font/woff2', '.wav': 'audio/wav' };
 
 export async function startServer(port = 0) {
   const server = createServer(async (request, response) => {

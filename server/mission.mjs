@@ -2,6 +2,7 @@
 import {randomUUID} from 'node:crypto';
 import {decide, policy, SOL} from '../app/engine.js';
 import {ORIGIN, reading, seeded} from '../app/scenarios.js';
+import {buildGround, groundAction} from '../app/ground-model.js';
 
 const domain = 'cardiovascular';
 const crew = [
@@ -17,7 +18,8 @@ function reject(message, status = 400) {
   throw Object.assign(new Error(message), {status});
 }
 
-export function createMission({database, transaction, insertObservation, observations, seed}) {
+export function createMission({database, transaction, insertObservation, observations, seed, boneState, clock, reportId = randomUUID}) {
+  const at = () => new Date(clock()).toISOString();
   database.exec(`
     CREATE TABLE IF NOT EXISTS mission_ack (
       evidence_id TEXT PRIMARY KEY REFERENCES silver(id), acknowledged_at TEXT NOT NULL
@@ -26,6 +28,12 @@ export function createMission({database, transaction, insertObservation, observa
       id TEXT PRIMARY KEY, kind TEXT NOT NULL, status TEXT NOT NULL,
       snapshot_json TEXT NOT NULL, created_at TEXT NOT NULL,
       delivered_at TEXT, reviewed_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS mission_report_delay (
+      id TEXT PRIMARY KEY REFERENCES mission_report(id), minutes INTEGER NOT NULL, due_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS mission_ground_action (
+      id TEXT PRIMARY KEY, payload_json TEXT NOT NULL
     );
   `);
 
@@ -45,9 +53,14 @@ export function createMission({database, transaction, insertObservation, observa
     const first = samples[0]?.observation;
     const frozen = first ? decide(first, reference, first.observedAt, settings).baseline : null;
     const decision = decide(current ?? null, reference, current?.observedAt ?? ORIGIN, settings, frozen);
+    const prior = samples.at(-2)?.observation;
+    const priorDecision = prior ? decide(prior, reference, prior.observedAt, settings, frozen) : null;
+    const repeated = ['watch','alert'].includes(decision.level) && ['watch','alert'].includes(priorDecision?.level)
+      && Math.sign(decision.z) === Math.sign(priorDecision.z);
     const baseline = decision.baseline?.n ? decision.baseline : null;
     const evidenceIds = [...history.filter(row => baseline?.ids.includes(row.observation.id)), ...(latest ? [latest] : [])].map(row => row.id);
-    return {crewId,name,simulated:true,missionDay:samples.length,reading:current ?? null,decision,
+    return {crewId,name,simulated:true,missionDay:samples.length,reading:current ?? null,decision,repeated,
+      confirmedAlert:repeated && decision.level === 'alert' && priorDecision.level === 'alert',
       evidenceIds, latestEvidenceId:latest?.id ?? null,
       receivedAt:latest ? database.prepare(`
         SELECT bronze.ingested_at AS stamp FROM bronze JOIN silver ON silver.bronze_id=bronze.id WHERE silver.id=?
@@ -57,11 +70,45 @@ export function createMission({database, transaction, insertObservation, observa
     };
   }
 
+  function reportMember(id, bone) {
+    const rows = observations(domain, scenario(id));
+    const member = snapshot(id,rows);
+    const lower = member.reading?.observedAt - (settings.window - 1) * SOL;
+    const history = member.reading ? rows.map(row => row.observation).filter(row => row.observedAt >= lower) : [];
+    const packetEvents = database.prepare(`
+      SELECT silver.id, bronze.ingested_at AS received, mission_ack.acknowledged_at AS acknowledged
+      FROM silver JOIN bronze ON bronze.id=silver.bronze_id
+      LEFT JOIN mission_ack ON mission_ack.evidence_id=silver.id
+      WHERE silver.domain=? AND silver.scenario=? AND silver.observation_id LIKE 'packet-%'
+      ORDER BY silver.observed_at DESC LIMIT 30`
+    ).all(domain, scenario(id));
+    const timeline = packetEvents.flatMap(row => [
+      {id:row.id,kind:'packet',at:row.received,label:'Synthetic resting sample received onboard'},
+      ...(row.acknowledged ? [{id:row.id + ':ack',kind:'cmo-ack',at:row.acknowledged,label:'CMO acknowledged the reading'}] : []),
+    ]);
+    const lineage = database.prepare(`
+      SELECT bronze.id AS bronzeId, bronze.raw_json AS raw, bronze.source_json AS source,
+        silver.id AS silverId,silver.normalized_json AS normalized
+      FROM silver JOIN bronze ON bronze.id=silver.bronze_id WHERE silver.id=?`
+    );
+    const heartRecords = member.evidenceIds.map(key => lineage.get(key));
+    const boneRecords = bone?.evidenceIds.map(key => lineage.get(key)) ?? [];
+    const evidence = {
+      bronze:[...heartRecords,...boneRecords].map(row => ({id:row.bronzeId,raw:JSON.parse(row.raw),source:JSON.parse(row.source)})),
+      silver:[...heartRecords,...boneRecords].map(row => ({id:row.silverId,bronzeId:row.bronzeId,observation:JSON.parse(row.normalized)})),
+      gold:[
+        ...(member.latestEvidenceId ? [{id:'gold:' + scenario(id),decision:member.decision,evidenceIds:member.evidenceIds}] : []),
+        ...(bone ? [{id:bone.id,decision:bone.decision,evidenceIds:bone.evidenceIds}] : []),
+      ],
+    };
+    return {...member,history,bone,timeline,evidence};
+  }
+
   function updateGold(id, state) {
     const key = scenario(id);
     database.prepare(`INSERT INTO gold VALUES (?,?,?,?,?)
       ON CONFLICT(domain,scenario) DO UPDATE SET snapshot_json=excluded.snapshot_json,updated_at=excluded.updated_at
-    `).run('gold:' + key, domain, key, JSON.stringify(state), new Date().toISOString());
+    `).run('gold:' + key, domain, key, JSON.stringify(state), at());
     return state;
   }
 
@@ -91,8 +138,31 @@ export function createMission({database, transaction, insertObservation, observa
     return {...state, profiles};
   }
 
+  function receiveDueReports() {
+    database.prepare(`UPDATE mission_report SET status='delivered',
+      delivered_at=(SELECT due_at FROM mission_report_delay WHERE id=mission_report.id)
+      WHERE status='queued' AND id IN (SELECT id FROM mission_report_delay WHERE due_at<=?)`).run(at());
+  }
+
+  function getReports() {
+    receiveDueReports();
+    return database.prepare(`SELECT mission_report.*, minutes, due_at FROM mission_report
+      LEFT JOIN mission_report_delay USING (id) ORDER BY created_at DESC,mission_report.rowid DESC`).all().map(row => ({
+      id:row.id, kind:row.kind, status:row.status, createdAt:row.created_at,
+      deliveredAt:row.delivered_at, reviewedAt:row.reviewed_at,
+      delayMinutes:row.minutes, dueAt:row.due_at,
+      crew:row.status === 'queued' ? null : JSON.parse(row.snapshot_json),
+    }));
+  }
+
+  function getGround() {
+    const actions = database.prepare('SELECT payload_json FROM mission_ground_action').all().map(row => JSON.parse(row.payload_json));
+    return buildGround(getReports(),actions);
+  }
+
   return {
     getCrew,
+    getGround,
     getCmo() { return {crew:crew.map(member => snapshot(member.id))}; },
 
     ingest(id, {packetId,value,simulated} = {}) {
@@ -126,44 +196,56 @@ export function createMission({database, transaction, insertObservation, observa
         const state = snapshot(crewId);
         if (!evidenceId || state.latestEvidenceId !== evidenceId) reject('The selected reading changed. Refresh and review the latest reading.',409);
         if (!['watch','alert'].includes(state.decision.level)) reject('Only WATCH or ALERT readings can be acknowledged.');
-        database.prepare('INSERT OR IGNORE INTO mission_ack VALUES (?,?)').run(evidenceId,new Date().toISOString());
+        database.prepare('INSERT OR IGNORE INTO mission_ack VALUES (?,?)').run(evidenceId,at());
         return updateGold(crewId,snapshot(crewId));
       });
     },
 
-    getReports() {
-      return database.prepare('SELECT * FROM mission_report ORDER BY created_at DESC,id').all().map(row => ({
-        id:row.id, kind:row.kind, status:row.status, createdAt:row.created_at,
-        deliveredAt:row.delivered_at, reviewedAt:row.reviewed_at,
-        crew:row.status === 'queued' ? null : JSON.parse(row.snapshot_json),
-      }));
-    },
+    getReports,
 
     queueReport({kind} = {}) {
       if (!['daily','weekly'].includes(kind)) reject('Select a daily or weekly training report.');
       return transaction(() => {
-        const roster = crew.map(member => snapshot(member.id));
+        const bone = boneState();
+        const roster = crew.map(member => reportMember(member.id,bone.current?.crewId === member.id ? bone : null));
         if (!roster.some(member => member.reading)) reject('Receive a crew reading before queuing a report.');
-        const id = randomUUID();
+        const id = reportId();
+        const createdAt = at();
+        const delayMinutes = 3 + (seed + database.prepare('SELECT count(*) AS n FROM mission_report').get().n) % 20;
+        const dueAt = new Date(Date.parse(createdAt) + delayMinutes * 60000).toISOString();
         database.prepare('INSERT INTO mission_report VALUES (?,?,?,?,?,NULL,NULL)')
-          .run(id,kind,'queued',JSON.stringify(roster),new Date().toISOString());
-        return {id,kind,status:'queued'};
+          .run(id,kind,'queued',JSON.stringify(roster),createdAt);
+        database.prepare('INSERT INTO mission_report_delay VALUES (?,?,?)').run(id,delayMinutes,dueAt);
+        return {id,kind,status:'queued',delayMinutes,dueAt};
       });
     },
 
     updateReport({id,action} = {}) {
       if (typeof id !== 'string' || !['deliver','review'].includes(action)) reject('Select a report action.');
       return transaction(() => {
+        receiveDueReports();
         const report = database.prepare('SELECT status FROM mission_report WHERE id=?').get(id);
         if (!report) reject('Report not found.',404);
         if (action === 'deliver' && report.status === 'queued') {
-          database.prepare("UPDATE mission_report SET status='delivered',delivered_at=? WHERE id=?").run(new Date().toISOString(),id);
+          database.prepare("UPDATE mission_report SET status='delivered',delivered_at=? WHERE id=?").run(at(),id);
         } else if (action === 'review' && report.status === 'delivered') {
-          database.prepare("UPDATE mission_report SET status='reviewed',reviewed_at=? WHERE id=?").run(new Date().toISOString(),id);
+          database.prepare("UPDATE mission_report SET status='reviewed',reviewed_at=? WHERE id=?").run(at(),id);
         } else {
           reject('This report is no longer in the required state.',409);
         }
         return {id,status:action === 'deliver' ? 'delivered' : 'reviewed'};
+      });
+    },
+
+    saveGroundAction(input) {
+      return transaction(() => {
+        const row = typeof input?.requestId === 'string'
+          ? database.prepare('SELECT payload_json FROM mission_ground_action WHERE id=?').get(input.requestId) : null;
+        const previous = row ? JSON.parse(row.payload_json) : null;
+        const result = groundAction({crew:getGround().crew,previous,at:at()},input);
+        if (!result.duplicate) database.prepare('INSERT INTO mission_ground_action VALUES (?,?)')
+          .run(result.entry.id,JSON.stringify(result.entry));
+        return result;
       });
     },
   };

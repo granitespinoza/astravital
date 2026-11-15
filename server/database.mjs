@@ -13,12 +13,13 @@ import {createMission} from './mission.mjs';
 const defaults = {cardiovascular:'deviation', bone:'change'};
 const parse = value => JSON.parse(value);
 const json = value => JSON.stringify(value);
-const now = () => new Date().toISOString();
 function fail(message, code = 'invalid-request') { const error = new Error(message); error.code = code; throw error; }
 function domainName(domain) { const result = domain === 'heart' ? 'cardiovascular' : domain; if (!Object.hasOwn(defaults, result)) fail('Unknown health domain.'); return result; }
 function scenarioName(domain, scenario) { const result = scenario ?? defaults[domain]; if (!Object.hasOwn(domain === 'bone' ? boneScenarios : scenarios, result)) fail('Unknown domain scenario.'); return result; }
 
-export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.sqlite', import.meta.url)), seed = 142, mission = false} = {}) {
+export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.sqlite', import.meta.url)), seed = 142, mission = false,
+  clock = Date.now, reportId} = {}) {
+  const now = () => new Date(clock()).toISOString();
   if (seed !== 142) fail('Only the documented seed 142 is supported by these fixtures.');
   if (path !== ':memory:') mkdirSync(dirname(path), {recursive:true});
   const database = new DatabaseSync(path);
@@ -84,7 +85,6 @@ export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.s
     for (const [domain,ids] of [['cardiovascular',Object.keys(scenarios)],['bone',Object.keys(boneScenarios)]]) for (const scenario of ids) refresh(domain,scenario);
   });
   const api = {
-    mission: mission ? createMission({database,transaction,insertObservation,observations,seed}) : null,
     health() { return {ok:true,storage:'sqlite',schemaVersion:1,seed,simulated:true,counts:api.getEvidence().counts}; },
     getState(domain='cardiovascular',scenario) { domain=domainName(domain);scenario=scenarioName(domain,scenario);return parse(database.prepare('SELECT snapshot_json FROM gold WHERE domain=? AND scenario=?').get(domain,scenario).snapshot_json); },
     getEvidence() {
@@ -127,5 +127,7 @@ export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.s
     saveSession(id,context) { database.prepare('INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET context_json=excluded.context_json,updated_at=excluded.updated_at').run(id,json(context),now()); },
     close() { database.close(); },
   };
+  api.mission = mission ? createMission({database,transaction,insertObservation,observations,seed,clock,reportId,
+    boneState:() => api.getState('bone')}) : null;
   return api;
 }

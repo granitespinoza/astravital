@@ -1,4 +1,6 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
+import {healthStatus, healthStatusText} from './health-status.js';
+
 const byId = id => document.getElementById(id);
 const phoneToken = new URLSearchParams(location.hash.slice(1)).get('crew');
 const isPhone = phoneToken !== null;
@@ -15,6 +17,10 @@ let active = isPhone ? 'crew' : 'cmo';
 let busy = false;
 let signature;
 let links = [];
+let demo, ground, groundModule, modeReady = false;
+
+const requestId = () => Array.from(crypto.getRandomValues(new Uint8Array(16)),
+  byte => byte.toString(16).padStart(2,'0')).join('');
 
 function element(tag, text, css) {
   const node = document.createElement(tag);
@@ -24,6 +30,7 @@ function element(tag, text, css) {
 }
 
 async function request(path, data) {
+  if (demo) return demo.request(path,data);
   const headers = isPhone ? {Authorization:'Bearer ' + phoneToken} : {};
   const options = {headers, cache:'no-store', signal:AbortSignal.timeout(5000)};
   if (data !== undefined) {
@@ -58,9 +65,9 @@ function formatTime(value) {
 function readingsCard(member, canAcknowledge) {
   const details = element('div','','mission-card');
   const decision = member.decision;
-  const label = (decision.level ?? decision.quality).replaceAll('-',' ').toUpperCase();
-  const status = element('p',label,'mission-status');
-  status.dataset.level = {ok:'stable',watch:'check',alert:'review'}[decision.level] ?? 'unknown';
+  const key = decision.level ?? decision.quality;
+  const status = element('p',healthStatusText(key),'mission-status');
+  status.dataset.level = healthStatus(key).level;
   const value = member.reading?.value;
   details.append(element('h3',member.name),status,element('p',value === undefined ? 'No sample received' : value + ' bpm','mission-value'),
     element('p',decision.reason));
@@ -70,6 +77,7 @@ function readingsCard(member, canAcknowledge) {
     info.append(element('summary','Measurement evidence'),
       element('p',decision.baseline.mean.toFixed(1) + ' bpm personal baseline · ' + decision.baseline.n + ' readings'),
       element('p','Z-score ' + (decision.z?.toFixed(2) ?? '—') + ' · Quality: ' + decision.quality),
+      element('p','Repeat confirmed: ' + (member.repeated ? 'Yes' : 'No')),
       element('p',decision.rule),element('p',member.latestEvidenceId));
     if (member.recent.length > 1) info.append(element('p','Recent received samples (bpm): ' + member.recent.map(item=>item.value).join(', ')));
     details.append(info);
@@ -98,7 +106,7 @@ function render(payload) {
     byId('heading').textContent = payload.name;
     byId('crew-state').replaceChildren(readingsCard(payload,false));
   } else if (active === 'cmo') {
-    if (!links.length || links[0].url !== payload.links[0].url) {
+    if (!links.length || links[0].url !== payload.links[0]?.url) {
       const selected = byId('member').value;
       links = payload.links;
       byId('member').replaceChildren(...payload.crew.map(member => {
@@ -115,19 +123,25 @@ function render(payload) {
     byId('review-count').textContent = payload.reviewCount + ' review requests saved in the glasses experience.';
     byId('roster').replaceChildren(...payload.crew.map(member => readingsCard(member,true)));
   } else {
+    ground.render(payload,Boolean(demo));
     const cards = payload.reports.map(report => {
       const card = element('article','','mission-card');
       card.append(element('h3',report.kind === 'daily' ? 'Daily overview' : 'Weekly overview'),
-        element('p',report.status === 'queued' ? 'QUEUED · NOT RECEIVED' : report.status.toUpperCase() + ' · SIMULATED','mission-status'),
+        element('p',report.status === 'queued' ? '○ QUEUED · SIMULATED' :
+          report.status === 'reviewed' ? '✓ RECEIVED · REVIEWED · SIMULATED' : '✓ RECEIVED · SIMULATED','mission-status'),
         element('p','Created ' + formatTime(report.createdAt),'mission-hint'));
+      if (report.delayMinutes) card.append(element('p',`Modeled delay · ${report.delayMinutes} min`,'mission-hint'));
+      if (report.status === 'queued' && report.dueAt) card.append(element('p','Simulated arrival ' + formatTime(report.dueAt),'mission-hint'));
+      if (report.deliveredAt) card.append(element('p','Simulated receipt ' + formatTime(report.deliveredAt),'mission-hint'));
       if (report.crew) {
         const list = document.createElement('ul');
         for (const member of report.crew) {
-          list.append(element('li',member.name + ': ' + (member.reading ? member.reading.value + ' bpm · ' + (member.decision.level ?? member.decision.quality).toUpperCase() : 'No reading')));
+          list.append(element('li',member.name + ': ' + (member.reading ? member.reading.value + ' bpm · ' +
+            healthStatusText(member.decision.level ?? member.decision.quality) : 'No reading')));
         }
         card.append(list);
       }
-      if (report.status !== 'reviewed') {
+      if (!demo && report.status !== 'reviewed') {
         const queued = report.status === 'queued';
         const button = element('button',queued ? 'Simulate Earth receipt' : 'Mark simulated review');
         button.type = 'button';
@@ -151,10 +165,20 @@ async function refresh() {
         persistQueue();
       }
     }
+    if (view === 'ground' && !ground) {
+      groundModule ??= import('./ground-view.js?v=13');
+      const {createGroundView} = await groundModule;
+      if (view !== active) return;
+      ground = createGroundView({prepareRequestId:requestId, perform:async draft => {
+        const outcome = await request('ground-action',draft);
+        await poll();
+        return outcome;
+      }});
+    }
     const payload = await request(view);
     if (view !== active) return;
     render(payload);
-    byId('connection').textContent = 'Connected to the mission laptop';
+    byId('connection').textContent = demo ? 'WEB DEMO · Seed 142 training report' : 'Connected to the mission laptop';
   } catch (error) {
     if (view !== active) return;
     byId('connection').textContent = error.status === 403 && !isPhone
@@ -165,8 +189,12 @@ async function refresh() {
 async function poll() {
   if (busy) return;
   busy = true;
+  const view = active;
   try { await refresh(); }
-  finally { busy = false; }
+  finally {
+    busy = false;
+    if (active !== view) void poll();
+  }
 }
 
 async function perform(path,data,message) {
@@ -191,12 +219,58 @@ function selectView(view) {
   active = view;
   signature = undefined;
   byId('level').textContent = view === 'cmo' ? 'LEVEL 2 · CREW MEDICAL OFFICER' : 'LEVEL 3 · FLIGHT SURGEON';
-  byId('heading').textContent = view === 'cmo' ? 'Onboard crew review' : 'Ground simulation';
+  byId('heading').textContent = view === 'cmo' ? 'Onboard crew review' : 'Earth doctor view';
+  document.querySelector('main').dataset.view = view;
   byId('cmo-panel').hidden = view !== 'cmo';
   byId('ground-panel').hidden = view !== 'ground';
+  byId('action-result').textContent = '';
   byId('show-cmo').setAttribute('aria-pressed',String(view === 'cmo'));
   byId('show-ground').setAttribute('aria-pressed',String(view === 'ground'));
-  void poll();
+  if (modeReady) void poll();
+}
+
+async function initStaff() {
+  const local = ['127.0.0.1','localhost','[::1]'].includes(location.hostname);
+  if (!local && location.protocol !== 'https:') {
+    byId('connection').textContent = 'Open a crew link from the CMO console on the laptop.';
+    return;
+  }
+  if (local) {
+    try {
+      const response = await fetch('./health',{cache:'no-store',signal:AbortSignal.timeout(3000)});
+      if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+        const health = await response.json();
+        modeReady = health.mission === true;
+      }
+    } catch { /* No local mission profile answered the capability check. */ }
+  }
+  if (!modeReady) {
+    try {
+      const {createMissionDemo} = await import('./mission-demo.js?v=13');
+      demo = await createMissionDemo({caseId:new URLSearchParams(location.search).get('case')});
+      modeReady = true;
+    } catch {
+      byId('connection').textContent = 'The web demo snapshot is unavailable. Reload to try again.';
+      return;
+    }
+  }
+  byId('staff-nav').hidden = Boolean(demo);
+  byId('report-form').hidden = Boolean(demo);
+  byId('glasses-link').hidden = false;
+  if (demo) byId('glasses-link').href = './#shared-case';
+  byId('show-cmo').onclick = () => { location.hash = '#cmo'; };
+  byId('show-ground').onclick = () => { location.hash = '#ground'; };
+  byId('member').onchange = updatePair;
+  byId('pair-link').onclick = event => event.currentTarget.select();
+  byId('report-form').onsubmit = event => {
+    event.preventDefault();
+    void perform('reports',{kind:byId('report-kind').value},'Report queued onboard.');
+  };
+  const route = () => selectView(demo || location.hash === '#ground' ? 'ground' : 'cmo');
+  addEventListener('hashchange',route);
+  route();
+  if (demo && navigator.serviceWorker) void navigator.serviceWorker.register('./sw.js').catch(() => {});
+  if (!demo) setInterval(poll,2500);
 }
 
 if (isPhone) {
@@ -206,26 +280,14 @@ if (isPhone) {
   byId('sample-form').addEventListener('submit', event => {
     event.preventDefault();
     if (!state) return;
-    const packetId = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte=>byte.toString(16).padStart(2,'0')).join('');
+    const packetId = requestId();
     pending.push({packetId,value:state.profiles[byId('profile').value],simulated:true});
     persistQueue();
     void poll();
   });
   persistQueue();
   void poll();
-} else if (['127.0.0.1','localhost','[::1]'].includes(location.hostname)) {
-  byId('staff-nav').hidden = false;
-  byId('glasses-link').hidden = false;
-  byId('show-cmo').onclick = () => selectView('cmo');
-  byId('show-ground').onclick = () => selectView('ground');
-  byId('member').onchange = updatePair;
-  byId('pair-link').onclick = event => event.currentTarget.select();
-  byId('report-form').onsubmit = event => {
-    event.preventDefault();
-    void perform('reports',{kind:byId('report-kind').value},'Report queued onboard.');
-  };
-  selectView('cmo');
+  setInterval(poll,2500);
 } else {
-  byId('connection').textContent = 'Open a crew link from the CMO console on the laptop.';
+  void initStaff();
 }
-if (isPhone || !byId('staff-nav').hidden) setInterval(poll, 2500);
