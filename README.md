@@ -42,7 +42,7 @@ ASTRAVITAL helps an astronaut on a lunar station or a Mars base understand two m
 
 ![Earth doctor view: heart and left-hip anatomy, the repeated resting check against the frozen personal reference, and the experimental trend forecast](docs/media/07-earth-doctor.png)
 
-**No install? Open the live web demo: https://granitespinoza.github.io/astravital/** When no local server is running, the same pages run in the browser: the identical dialogue rules over seed-142 states exported from the database (parity test: `tests/web-demo.test.js`). Voice, the SQLite database and the crew → CMO → Earth rehearsal run only in the full local app.
+**No install? Open the live web demo: https://granitespinoza.github.io/astravital/** When no local server is running, the same pages run in the browser: the identical dialogue rules over seed-142 states exported from the database (parity test: `tests/web-demo.test.js`). **Reset demo** (in the web demo notice) returns it to its first state. Voice, the SQLite database and the crew → CMO → Earth rehearsal run only in the full local app.
 
 ---
 
@@ -136,7 +136,7 @@ An assistant that gives an astronaut a wrong health answer is worse than no assi
 1. **No generative model writes health answers.** Astra is a bounded, rule-based dialogue policy ([`server/assistant.mjs`](server/assistant.mjs)) with a closed set of intents: status, explain, compare, check again, request review, confirm, cancel and mute, in English and Spanish.
 2. **Every answer comes from the local record.** Sentences are fixed templates filled only with values computed from validated (Gold) data, and every response carries the evidence IDs of the records it used.
 3. **No data means no answer.** Missing, invalid or incompatible measurements produce *"I can't assess…"*, never a plausible-looking value.
-4. **Out-of-scope questions are declined.** Asked for a diagnosis or treatment, Astra says the measurements cannot support it. Told *"I feel dizzy"*, it asks the astronaut to tell the onboard medical officer. Asked to contact Earth, it says Earth is unavailable and that it has not contacted anyone. Anything unrecognized gets a clarifying question, not a guess.
+4. **Out-of-scope questions are declined.** Asked for a diagnosis, a disease, treatment or medication, Astra says the measurements cannot support it and that the onboard medical officer decides on care. Asked whether it is a heart attack, or told about chest pain, it asks the astronaut to tell the onboard medical officer now. Told *"I feel dizzy"*, it asks the astronaut to tell the onboard medical officer. Asked to contact Earth, it says Earth is unavailable and that it has not contacted anyone. Anything unrecognized gets a clarifying question, not a guess.
 5. **Actions need a separate confirmation.** A review request opens a pending confirmation tied to the exact context; it expires after 5 minutes and is saved only once (idempotent request ID).
 6. **A repeat cannot hide a change.** The check keeps the original reference instead of absorbing the deviation.
 7. **Voice is input, not evidence.** Speech is transcribed locally and shown back as *"You said: …"*; it never becomes a measurement, and write actions still need confirmation.
@@ -181,14 +181,15 @@ For the three-level mission rehearsal, see [Mission LAN demonstration](docs/MISS
 ### Verify
 
 ```sh
-npm run verify          # build + 70 automated tests
-npm run test:e2e        # web demo in headless Chrome (also run against the live site after each deploy)
+npm run verify          # build + 71 automated tests
+npm run test:e2e        # web demo in headless Chrome (also run against the live site after each deploy;
+                        # E2E_DATE=2027-01-26 repeats it with a shifted clock to prove the demo does not expire)
 npm run test:functional # full local app: real server and SQLite, glasses → crew phone → CMO → Earth doctor
 npm run test:browser    # earlier glasses simulator and review console
 node scripts/forecast-eval.mjs   # time-ordered backtest of the experimental forecast
 ```
 
-Latest local run (2026-11-15, macOS, Node 22.23.2): **70 tests, 68 passed, 0 failed, 2 skipped**; web demo end-to-end **29/29**; full local app end-to-end **17/17**; earlier browser check passed. CI repeats the build, the tests and both end-to-end runs on every push. The two skipped tests are opt-in integration runs of the real local voice models; run on the same day with `RUN_TTS_INTEGRATION=1` (Kokoro synthesis with a network guard) and `RUN_VOICE_INTEGRATION=1` (speech recognition on synthetic speech), **both passed** (4/4 and 6/6). All results and limits: [docs/RESULTADOS.md](docs/RESULTADOS.md).
+Latest local run (2026-11-15, macOS, Node 22.23.2): **71 tests, 69 passed, 0 failed, 2 skipped**; web demo end-to-end **34/34** (including 768 px and 390 px layouts and Reset demo), also passing with the clock set to 2026-12-03, 2026-12-17, 2027-01-26 and 2027-03-31; full local app end-to-end **17/17**; earlier browser check passed. CI repeats the build, the tests and both end-to-end runs on every push. The two skipped tests are opt-in integration runs of the real local voice models; run on the same day with `RUN_TTS_INTEGRATION=1` (Kokoro synthesis with a network guard) and `RUN_VOICE_INTEGRATION=1` (speech recognition on synthetic speech), **both passed** (4/4 and 6/6). All results and limits: [docs/RESULTADOS.md](docs/RESULTADOS.md).
 
 ---
 

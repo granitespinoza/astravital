@@ -55,7 +55,7 @@ test('pending confirmation is scoped, expiry is enforced, and failed writes have
 
 test('mute and out-of-scope medical questions retain evidence without inventing a diagnosis', context => {
   const db=memory(context);let reply=respond(db,{text:'silencio'});assert.equal(reply.muted,true);
-  reply=respond(db,{text:'¿tengo osteoporosis?',sessionId:reply.sessionId});assert.equal(reply.action,'explain');assert.match(reply.text,/cannot diagnose/);assert.ok(reply.evidenceIds.length);
+  reply=respond(db,{text:'¿tengo osteoporosis?',sessionId:reply.sessionId});assert.equal(reply.action,'decline');assert.match(reply.text,/cannot diagnose/);assert.ok(reply.evidenceIds.length);
   reply=respond(db,{text:'escribe una receta de tratamiento',sessionId:reply.sessionId});assert.notEqual(reply.action,'review-saved');assert.equal(db.listReviews().length,0);
 });
 
@@ -98,4 +98,23 @@ test('natural English keeps confirmation independent and negated actions have no
   reply=respond(db,{text:'Confirm save',sessionId});assert.equal(reply.action,'confirmation-unavailable');
   reply=respond(db,{text:'Request review',sessionId});reply=respond(db,{text:'Confirm save',sessionId});assert.equal(reply.saved,true);assert.equal(db.listReviews().length,1);
   reply=respond(db,{text:'Mute',sessionId});assert.equal(reply.muted,true);assert.match(reply.text,/Audio muted/);
+});
+
+// AI assistance: Anthropic Claude. Questions a judge is likely to try on the public demo.
+test('diagnosis, treatment and emergency questions are declined or referred, never answered with a status', () => {
+  const db=createDatabase({path:':memory:',seed:142});
+  let sessionId;
+  const ask = text => { const reply=respond(db,{text,sessionId}); sessionId=reply.sessionId; return reply; };
+  for (const text of ['Can you diagnose me?','Do I have heart disease?','Do I have a heart condition?','What treatment should I take?','Should I take medication?','¿Tengo una enfermedad?']) {
+    const reply=ask(text);
+    assert.equal(reply.action,'decline',text); assert.match(reply.text,/cannot diagnose/); assert.match(reply.text,/onboard medical officer/);
+  }
+  for (const text of ['Is this a heart attack?','I have chest pain','¿Es un infarto?']) {
+    const reply=ask(text);
+    assert.equal(reply.action,'acknowledge',text); assert.match(reply.text,/tell your onboard medical officer now/);
+  }
+  assert.equal(ask('Show medical details').action,'explain');
+  assert.equal(ask('How is my heart?').action,'status');
+  assert.equal(db.listReviews().length,0,'no question saves a review');
+  db.close();
 });

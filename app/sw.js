@@ -1,9 +1,9 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 // Update the cache version when releasing a changed app shell.
-const cacheName = 'astravital-dashboard-v15';
+const cacheName = 'astravital-dashboard-v16';
 const prefix = 'astravital-dashboard-';
 const files = [
-  './', './index.html', './legacy.html', './experience.css?v=13', './experience.js?v=15', './view3d.bundle.js?v=13', './web-demo.bundle.js?v=13', './mission.html', './mission.js', './mission.css', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
+  './', './index.html', './legacy.html', './experience.css?v=16', './experience.js?v=16', './view3d.bundle.js?v=13', './web-demo.bundle.js?v=16', './mission.html', './mission.js', './mission.css', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
   './scenarios.js', './storage.js', './chart.js', './explorer.js', './health-status.js',
   './mission.js?v=15', './mission.css?v=15', './ground-view.js?v=15', './ground-model.js', './forecast.js',
   './mission-demo.js?v=15', './mission-demo.json',

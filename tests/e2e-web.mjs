@@ -95,6 +95,15 @@ try {
   ({sessionId: session} = await call('Target.attachToTarget', {targetId, flatten: true}));
   const page = (method, params) => call(method, params, session);
   await page('Runtime.enable'); await page('Network.enable'); await page('Page.enable');
+  // E2E_DATE=2027-01-26 runs every page with a shifted clock, to prove the demo does not expire.
+  if (process.env.E2E_DATE) {
+    const shift = Date.parse(process.env.E2E_DATE) - Date.now();
+    assert.ok(Number.isFinite(shift), 'E2E_DATE must be a date such as 2027-01-26');
+    await page('Page.addScriptToEvaluateOnNewDocument', {source:`(() => { const shift = ${shift}, RealDate = Date;
+      class ShiftedDate extends RealDate { constructor(...args) { if (args.length) super(...args); else super(RealDate.now() + shift); } static now() { return RealDate.now() + shift; } }
+      globalThis.Date = ShiftedDate; })();`});
+    console.log('Clock shifted to ' + process.env.E2E_DATE);
+  }
   const js = async expression => { const r = await page('Runtime.evaluate', {expression, returnByValue: true, awaitPromise: true}); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const check = (name, ok, detail = '') => { console.log(`${ok ? 'ok' : 'FAIL'} - ${name}${detail ? ' — ' + detail : ''}`); if (!ok) failures.push(name); };
   const astra = () => js(`document.querySelector('#conversation .bubble span')?.textContent ?? ''`);
@@ -102,6 +111,7 @@ try {
   await page('Page.navigate', {url});
   await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'web demo status');
   check('page loads in web demo mode', true);
+  if (process.env.E2E_DATE) check('page clock runs at ' + process.env.E2E_DATE, (await js('new Date().toISOString()')).startsWith(process.env.E2E_DATE));
   check('voice button explains it runs in the local app', await js(`document.getElementById('mic-button').disabled && document.getElementById('mic-button').textContent.includes('local app')`));
   check('intro is ready', await js(`document.querySelector('.visual').dataset.intro === 'ready'`));
 
@@ -130,6 +140,9 @@ try {
   await js(`document.getElementById('show-body').click(); true`);
   check('body context view opens', await js(`document.getElementById('show-body').getAttribute('aria-pressed') === 'true'`));
   check('glasses never show the experimental forecast to the crew', !(await js(`document.body.innerText.toLowerCase().includes('forecast')`)));
+  await js(`document.getElementById('message').value='Can you diagnose me?'; document.getElementById('message-form').requestSubmit(); true`);
+  await untilPage(async () => (await astra()).includes('cannot diagnose'), 'diagnosis decline');
+  check('asked for a diagnosis, Astra declines in the conversation', (await astra()).includes('onboard medical officer'));
 
   const externalRequests = () => [...requests].filter(request => {
     const target = new URL(request);
@@ -222,6 +235,22 @@ try {
   const groundExternal = externalRequests();
   check('Ground makes no requests to other domains', groundExternal.length === 0, groundExternal.join(', '));
   check('Ground has no JavaScript errors', errors.length === 0, errors.join(' | '));
+
+  // Judges may come back weeks later: Reset demo returns the web demo to its first state.
+  await page('Emulation.setDeviceMetricsOverride', {width: 1440, height: 900, deviceScaleFactor: 1, mobile: false});
+  await page('Page.navigate', {url});
+  await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Review saved'`), 'saved state before reset');
+  await js(`document.getElementById('reset-demo').click(); true`);
+  await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO') && document.getElementById('next-action')?.textContent === 'Check again'`), 'demo reset');
+  check('Reset demo returns the web demo to its first state', await js(`(() => { try { return !localStorage.getItem('astravital-ground-actions-v1'); } catch { return false; } })()`));
+  check('no JavaScript errors after reset', errors.length === 0, errors.join(' | '));
+  for (const [width, height] of [[768, 1024], [390, 844]]) {
+    await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: true});
+    await page('Page.reload');
+    await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'glasses page at ' + width);
+    check(`Glasses page fits a ${width} px viewport`, await js(`window.innerWidth === ${width} &&
+      document.documentElement.scrollWidth <= window.innerWidth + 1`), await js(`document.documentElement.scrollWidth + ' px wide'`));
+  }
 } finally {
   socket?.close(); browser?.kill(); server?.close();
   await rm(profile, {recursive: true, force: true}).catch(() => {});
