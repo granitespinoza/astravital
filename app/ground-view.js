@@ -2,6 +2,7 @@
 import {drawHistory} from './chart.js';
 import {policy} from './engine.js';
 import {heartThreshold} from './ground-model.js';
+import {forecast, watchRisk} from './forecast.js';
 import {healthStatus, healthStatusText} from './health-status.js';
 
 const byId = id => document.getElementById(id);
@@ -65,8 +66,8 @@ function heartPanel(member, webDemo) {
       ['Received onboard',displayTime(member.receivedAt)],
     ]),
     node('p',decision.reason,'mission-hint'),
-    node('p',`Baseline: ${baseline?.n ?? 0} sols · trend prediction needs a longer history (team hypothesis)`,'mission-hint'),
   );
+  panel.append(trendPanel(member, baseline));
   const history = member.history ?? (member.recent ?? []).map(point => ({...point,id:point.evidenceId}));
   const chart = byId('ground-history');
   drawHistory(chart,history,reading,baseline,settings);
@@ -77,6 +78,24 @@ function heartPanel(member, webDemo) {
     records.append(node('summary','History readings'),values);
     chart.append(records);
   }
+}
+
+// AI assistance: Anthropic Claude. Experimental forecast, shown only to the doctor, never to the crew.
+function trendPanel(member, baseline) {
+  const box = node('div','','ground-forecast');
+  box.append(node('h3','Trend forecast · experimental'));
+  const values = (member.history ?? []).map(point => point.value);
+  if (member.reading?.value != null && member.decision?.quality === 'ok') values.push(member.reading.value);
+  const result = forecast(values,{horizon:3});
+  if (!result.ready) { box.append(node('p',result.reason,'mission-hint')); return box; }
+  const risk = watchRisk(result, baseline, settings.watch);
+  box.append(facts([
+    ...result.points.map(p => [`Sol +${p.h}`,`${number(p.mean,1)} bpm (80%: ${number(p.low,0)}–${number(p.high,0)})`]),
+    ['Trend',`${result.trendPerSol >= 0 ? '+' : ''}${number(result.trendPerSol,2)} bpm per sol`],
+    ['Forecast vs WATCH band',risk ? `Whole interval beyond band at sol +${risk.sol}` : 'Not beyond band'],
+  ]));
+  box.append(node('p',`${result.model} · ${result.n} sols. Backtest on synthetic crews: it adapts to the person but does not yet beat the last reading. Context for the flight surgeon only; the decision above still comes from the personal-reference rule.`,'mission-hint'));
+  return box;
 }
 
 function bonePanel(bone) {
