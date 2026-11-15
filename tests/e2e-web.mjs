@@ -95,6 +95,10 @@ try {
   ({sessionId: session} = await call('Target.attachToTarget', {targetId, flatten: true}));
   const page = (method, params) => call(method, params, session);
   await page('Runtime.enable'); await page('Network.enable'); await page('Page.enable');
+  // A stand-in for the browser's speech recogniser: it "hears" one sentence, so the voice path can be tested.
+  await page('Page.addScriptToEvaluateOnNewDocument', {source:`window.SpeechRecognition = window.webkitSpeechRecognition = class {
+    start() { setTimeout(() => { this.onresult?.({results:[[{transcript:'How is my heart?'}]]}); this.onend?.(); }, 80); }
+    stop() { this.onend?.(); } };`});
   // E2E_DATE=2027-01-26 runs every page with a shifted clock, to prove the demo does not expire.
   if (process.env.E2E_DATE) {
     const shift = Date.parse(process.env.E2E_DATE) - Date.now();
@@ -112,7 +116,8 @@ try {
   await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'web demo status');
   check('page loads in web demo mode', true);
   if (process.env.E2E_DATE) check('page clock runs at ' + process.env.E2E_DATE, (await js('new Date().toISOString()')).startsWith(process.env.E2E_DATE));
-  check('voice button explains it runs in the local app', await js(`document.getElementById('mic-button').disabled && document.getElementById('mic-button').textContent.includes('local app')`));
+  check('voice button is ready when the browser offers speech recognition', await js(`!document.getElementById('mic-button').disabled && document.getElementById('mic-button').textContent.includes('Talk to Astra')`));
+  check('typing box is open in the web demo', await js(`document.querySelector('.text-input').open === true`));
   check('intro is ready', await js(`document.querySelector('.visual').dataset.intro === 'ready'`));
 
   await js(`document.getElementById('enter-lenses').click()`);
@@ -156,6 +161,11 @@ try {
   await js(`document.getElementById('message').value='Can you diagnose me?'; document.getElementById('message-form').requestSubmit(); true`);
   await untilPage(async () => (await astra()).includes('cannot diagnose'), 'diagnosis decline');
   check('asked for a diagnosis, Astra declines in the conversation', (await astra()).includes('onboard medical officer'));
+  await js(`document.getElementById('mic-button').click(); true`);
+  await untilPage(() => js(`document.getElementById('transcript').textContent.includes('How is my heart?')`), 'voice transcript');
+  await untilPage(async () => !(await astra()).includes('cannot diagnose'), 'voice answer');
+  check('a spoken question is transcribed and answered by Astra', await js(`document.getElementById('domain-heart').getAttribute('aria-pressed') === 'true' &&
+    document.getElementById('mic-button').getAttribute('aria-pressed') === 'false'`), await astra());
 
   const externalRequests = () => [...requests].filter(request => {
     const target = new URL(request);
@@ -253,6 +263,11 @@ try {
     await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: true});
     check(`Ground fits a ${width} px viewport`, await js(`window.innerWidth === ${width} &&
       document.documentElement.scrollWidth <= window.innerWidth + 1`));
+    check(`Ground anatomy fits its panel at ${width} px`, await js(`(() => {
+      const stage = document.getElementById('ground-scene').getBoundingClientRect();
+      const figure = document.querySelector('#ground-scene .anatomy-figure').getBoundingClientRect();
+      return figure.height > 100 && figure.top >= stage.top - 1 && figure.bottom <= stage.bottom + 1 && figure.left >= stage.left - 1 && figure.right <= stage.right + 1;
+    })()`));
   }
   const groundExternal = externalRequests();
   check('Ground makes no requests to other domains', groundExternal.length === 0, groundExternal.join(', '));

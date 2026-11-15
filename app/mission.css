@@ -117,11 +117,12 @@
 .ground-forecast { margin-top: 1rem; padding-top: .6rem; border-top: 1px dashed var(--border); }
 .ground-forecast h3 { color: var(--cyan); font-size: .91rem; }
 /* AI assistance: Anthropic Claude. AI-generated anatomy illustrations; status colours come from the data. */
-.anatomy-stage { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden;
+.anatomy-stage { position: absolute; inset: 0; overflow: hidden;
   background: radial-gradient(ellipse at 50% 53%, color-mix(in srgb, var(--cyan) 12%, transparent), var(--panel-deep) 68%); }
-.anatomy-figure { position: relative; height: 94%; aspect-ratio: 2 / 3; transition: opacity .3s; }
+/* Absolute centring: percentage heights always resolve against the stage, at every viewport width. */
+.anatomy-figure { position: absolute; inset: 0; margin: auto; height: 94%; aspect-ratio: 2 / 3; transition: opacity .3s; }
 .anatomy-body { display: block; width: 100%; height: 100%; mix-blend-mode: screen; user-select: none; }
-.anatomy-closeup { position: absolute; max-width: 92%; max-height: 92%; mix-blend-mode: screen; opacity: 0; pointer-events: none;
+.anatomy-closeup { position: absolute; inset: 0; margin: auto; max-width: 92%; max-height: 92%; mix-blend-mode: screen; opacity: 0; pointer-events: none;
   transform: scale(calc(var(--closeup-scale, 1) * .94)); transition: opacity .3s, transform .3s; user-select: none; }
 #ground-scene[data-view="heart"] .anatomy-closeup[data-layer="heart"],
 #ground-scene[data-view="bone"] .anatomy-closeup[data-layer="bone"] { opacity: 1; transform: scale(var(--closeup-scale, 1)); }
