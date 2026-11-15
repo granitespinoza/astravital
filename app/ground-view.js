@@ -4,6 +4,7 @@ import {policy, SOL} from './engine.js';
 import {heartThreshold} from './ground-model.js';
 import {dailySeries, forecast, watchRisk} from './forecast.js';
 import {healthStatus, healthStatusText, repeatOutcome} from './health-status.js';
+import {messageContext} from './case-messages.js';
 
 const byId = id => document.getElementById(id);
 const settings = policy();
@@ -192,7 +193,7 @@ function evidencePanel(evidence) {
   panel.append(disclosure);
 }
 
-export function createGroundView({perform, prepareRequestId}) {
+export function createGroundView({perform, prepareRequestId,onCase = () => {}}) {
   const picker = byId('ground-member');
   const ack = byId('ground-ack');
   const add = byId('ground-add-note');
@@ -250,6 +251,7 @@ export function createGroundView({perform, prepareRequestId}) {
     byId('ground-bone-panel').hidden = showHeart;
     if (focus) zoomTo(Math.max(1,zoomIndex));
     else updateAnatomy();
+    if(member)onCase(messageContext(member,domain,'ground'));
   }
 
   function controls() {
@@ -266,6 +268,21 @@ export function createGroundView({perform, prepareRequestId}) {
       (member.visorCase === 'repeat' ? 'Repeat resting check' : 'Initial resting check') : '';
     const timeline = byId('ground-timeline');
     if (member) {
+      const overview=byId('ground-case-card');
+      const identity=node('div','','case-identity');
+      const who=node('div');who.append(node('p','CREW CASE · SIMULATED DATA','eyebrow'),node('h2',member.name));
+      identity.append(who,node('p',member.crewId+' · Exploration mission simulation','mission-hint'));
+      const summary=facts([
+        ['Latest resting check',member.reading?member.reading.value+' bpm':'No usable reading'],
+        ['Personal reference',member.decision.baseline?.n?number(member.decision.baseline.mean,1)+' ± '+number(member.decision.baseline.sd,1)+' bpm':'Insufficient evidence'],
+        ['Observed · simulated clock',displayTime(member.reading?.observedAt)],
+        ['Report received · simulation',displayTime(member.reportReceivedAt)],
+        ['Heart review',healthStatusText(heartState(member,webDemo))],
+        ['Left hip review',boneLabel(boneState(member.bone),member.bone)],
+      ]);summary.className='case-overview-grid';
+      overview.replaceChildren(identity,node('p',repeatOutcome(member)??member.decision.reason,'case-next'),summary,
+        node('p','Review the evidence, then record your decision or write to the astronaut. Messages and internal notes are separate.','mission-hint'));
+      onCase(messageContext(member,domain,'ground'));
       heartPanel(member,webDemo);
       bonePanel(member.bone);
       evidencePanel(member.evidence);
@@ -278,6 +295,7 @@ export function createGroundView({perform, prepareRequestId}) {
         return item;
       }));
     } else {
+      byId('ground-case-card').replaceChildren(node('p','Waiting for a received crew case.'));
       byId('ground-heart').replaceChildren(chip('missing'),node('p','Waiting for a received report.','mission-hint'));
       byId('ground-bone').replaceChildren(chip('missing'),node('p','Waiting for a received report.','mission-hint'));
       byId('ground-history').replaceChildren();

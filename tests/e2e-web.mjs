@@ -142,6 +142,18 @@ try {
   await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Review saved'`), 'persisted review after reload');
   check('saved review survives a reload', true);
 
+  // Shared messages require a separate final preview, persist across views and never imply delivery.
+  await js(`document.querySelector('#crew-conversation textarea').value='Message from crew E2E';
+    document.querySelector('#crew-conversation form').requestSubmit(); true`);
+  await untilPage(() => js(`!document.querySelector('#crew-conversation .case-preview').hidden`), 'message preview');
+  check('message preview does not save a message', await js(`!localStorage.getItem('astravital-case-messages-v1')`));
+  await js(`document.querySelectorAll('#crew-conversation .case-preview button')[1].click(); true`);
+  check('cancelled message saves nothing', await js(`!localStorage.getItem('astravital-case-messages-v1')`));
+  await js(`document.querySelector('#crew-conversation form').requestSubmit();
+    document.querySelector('#crew-conversation .case-preview button').click(); true`);
+  await untilPage(() => js(`document.querySelector('#crew-conversation .case-message-list').textContent.includes('Message from crew E2E')`), 'crew message saved');
+  check('crew message states local-only storage', await js(`document.querySelector('#crew-conversation .case-status').textContent === 'Saved locally · Not delivered'`));
+
   await js(`document.getElementById('show-body').click(); true`);
   check('body context view opens', await js(`document.getElementById('show-body').getAttribute('aria-pressed') === 'true'`));
   await untilPage(() => js(`(() => { const img = document.querySelector('#body-art .anatomy-body'); return Boolean(img?.complete && img.naturalWidth); })()`), 'body illustration');
@@ -207,12 +219,25 @@ try {
   check('Ground forecast uses one value per sol', groundHeart.includes('14 sols of history'));
   check('Ground inbox marks OK rows as within reference', await js(`[...document.querySelectorAll('#ground-inbox .mission-status')]
     .some(status => status.dataset.level === 'stable' && status.textContent.startsWith('✓ OK'))`));
+
+  await untilPage(() => js(`document.querySelector('#ground-conversation .case-message-list').textContent.includes('Message from crew E2E')`), 'shared crew message in doctor view');
+  check('doctor has an identity, personal reference and received-report summary', await js(`document.getElementById('ground-case-card').textContent.includes('Alex Morgan') && document.getElementById('ground-case-card').textContent.includes('Personal reference')`));
+  await js(`document.querySelector('#ground-conversation textarea').value='Doctor reply E2E';
+    document.querySelector('#ground-conversation form').requestSubmit();
+    document.querySelector('#ground-conversation .case-preview button').click(); true`);
+  await untilPage(() => js(`document.querySelector('#ground-conversation .case-message-list').textContent.includes('Doctor reply E2E')`), 'doctor reply saved');
+  await js(`document.querySelector('#ground-conversation .case-message button').click(); true`);
+  await untilPage(() => js(`document.querySelector('#ground-conversation .case-message-list').textContent.includes('Reviewed locally · Not delivered')`), 'message reviewed locally');
+  check('doctor review retains local-only delivery meaning', true);
   await js(`document.getElementById('ground-note').value = 'Training note from E2E';
     document.getElementById('ground-action-form').requestSubmit(); true`);
   await untilPage(() => js(`document.getElementById('ground-timeline').innerText.includes('Training note from E2E')`), 'Ground note saved');
   await page('Page.reload');
   await untilPage(() => js(`document.getElementById('ground-timeline')?.innerText.includes('Training note from E2E')`), 'Ground note after reload');
   check('Ground note survives a reload', true);
+
+  await untilPage(() => js(`document.querySelector('#ground-conversation .case-message-list').textContent.includes('Doctor reply E2E')`), 'doctor reply after reload');
+  check('internal notes are not sent into the shared conversation', await js(`!document.querySelector('#ground-conversation .case-message-list').textContent.includes('Training note from E2E')`));
   await untilPage(() => js(`(() => { const img = document.querySelector('#ground-scene .anatomy-body'); return Boolean(img?.complete && img.naturalWidth) && !document.getElementById('ground-scene').hasAttribute('aria-busy'); })()`), 'Ground illustration');
   check('Ground shows the AI-generated anatomy with visible labels', await js(`document.getElementById('ground-scene').dataset.view === 'body' &&
     document.querySelector('#ground-scene .ai-badge').textContent.includes('AI-generated image') &&
@@ -276,6 +301,9 @@ try {
   // Judges may come back weeks later: Reset demo returns the web demo to its first state.
   await page('Emulation.setDeviceMetricsOverride', {width: 1440, height: 900, deviceScaleFactor: 1, mobile: false});
   await page('Page.navigate', {url});
+
+  await untilPage(() => js(`document.querySelector('#crew-conversation .case-message-list')?.textContent.includes('Doctor reply E2E')`), 'reply visible to astronaut');
+  check('astronaut receives the saved doctor reply in this browser', true);
   await untilPage(() => js(`document.getElementById('next-action')?.textContent === 'Review saved'`), 'saved state before reset');
   await js(`document.getElementById('reset-demo').click(); true`);
   await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO') && document.getElementById('next-action')?.textContent === 'Check again'`), 'demo reset');

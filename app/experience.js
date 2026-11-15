@@ -1,4 +1,6 @@
 // AI assistance: OpenAI Codex. Real local voice; synthetic health observations.
+import {browserMessages,messageContext,MESSAGE_KEY} from './case-messages.js';
+import {createCaseThread} from './case-thread.js';
 import {createScene} from './view3d.bundle.js?v=13';
 const $=id=>document.getElementById(id);
 const remember=id=>{try{localStorage.setItem('astra-session',id);}catch{}};
@@ -7,6 +9,26 @@ let domain='cardiovascular',state,evidence,pending=null,busy=false,mode='focus',
 let stream,context,processor,micOn=false,transcribing=false,speaking=false,recording=false,frames=[],preRoll=[],quietMs=0,totalMs=0,speechMs=0,captureGeneration=0;
 let audio,voiceRequest,voiceUrl;
 const states={};
+let caseThread,evidenceDomain;
+const browserStore=browserMessages();
+async function caseRequest(input,context){if(webDemo)return browserStore.request(input,context);return api('/api/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});}
+function renderCrewCase(){
+ if(!state)return;
+ const context=messageContext(state,domain,'crew');
+ caseThread??=createCaseThread($('crew-conversation'),{request:caseRequest,localOnly:Boolean(webDemo)});caseThread.render(context);
+ $('hud-focus-title').textContent=(domain==='bone'?'Bones':'Heart')+' · '+indicator(state).label;
+ $('hud-next-action').textContent=state.requested?'Review saved':domain==='bone'||state.performed?'Prepare onboard review':'Check again';
+ $('hud-next-action').disabled=busy||state.requested;
+ const observed=state.current?.observedAt??state.reading?.observedAt;
+ $('hud-observed').textContent='Simulated measurement · '+(observed?new Date(observed).toISOString().slice(0,16).replace('T',' ')+' UTC':'No usable measurement');
+ for(const [key,id]of[['cardiovascular','heart'],['bone','bone']])$('hud-'+id).setAttribute('aria-current',String(domain===key));
+ const overview=$('crew-overview');overview.replaceChildren();
+ const heading=document.createElement('h2');heading.textContent='Alex Morgan · Your current check';
+ const summary=document.createElement('p');summary.className='case-next';summary.textContent=brief(state);
+ const note=document.createElement('p');note.className='case-hint';note.textContent='Exploration mission simulation · '+(domain==='bone'?'Left hip · periodic scan':'Heart · resting pulse')+' · Details and messages are available below.';
+ overview.append(heading,summary,note);
+ if(evidenceDomain!==domain){$('medical-explanation').textContent='';evidenceDomain=domain;}
+}
 const scene=createScene($('scene'),{onDomain:next=>setDomain(next),onEnter:()=>enterLenses()});
 // AI assistance: Anthropic Claude. Without a local server (for example on GitHub Pages), the same dialogue policy runs in the browser.
 let webDemo=null;
@@ -15,7 +37,7 @@ async function api(path,options={}){if(webDemo){try{return await webDemo.request
 function indicator(s){if(!s||s.quality!=='ok')return{level:'unknown',label:'No recent data'};if(s.domain==='bone'){if(!s.decision.comparable||s.decision.significance==='not-established')return{level:'unknown',label:'More data needed'};return s.decision.significance==='exceeds-measurement-lsc'?{level:'check',label:'Worth a review'}:{level:'stable',label:'Within reference'};}return s.decision.level==='alert'?{level:'review',label:'Review change'}:s.decision.level==='watch'?{level:'check',label:'Check again'}:{level:'stable',label:'Within reference'};}
 function brief(s){const i=indicator(s);if(i.level==='unknown')return'I need usable measurements before I can summarize this check.';if(s.domain==='bone')return i.level==='stable'?'Your latest bone measurement is within the demo comparison range.':'Your latest bone check shows a change worth reviewing. We can prepare the details together.';return i.level==='stable'?'Your heart-rate check is within your demo reference. I’m here if you want a closer look.':s.performed?'The change is still present in the repeat check. I can prepare it for onboard review.':'Your heart rate is different from your usual resting pattern. Let’s check it again.';}
 function updateIndicators(){for(const marker of document.querySelectorAll('#body-art .anatomy-marker')){const heart=marker.dataset.zone==='heart';const i=indicator(states[heart?'cardiovascular':'bone']);marker.dataset.level=i.level;marker.querySelector('.anatomy-tag').textContent=(heart?'Heart':'Left hip')+' · '+i.label;marker.setAttribute('aria-label',(heart?'Heart':'Left hip')+': '+i.label+'. Ask Astra.');}for(const [key,id] of [['cardiovascular','heart'],['bone','bone']]){const i=indicator(states[key]);$('hud-'+id).dataset.level=i.level;$('hud-'+id+'-status').textContent=i.label;$('hud-'+id).setAttribute('aria-label',(id==='heart'?'Heart':'Bone')+' status: '+i.label+'. Ask Astra.');}}
-function updateButtons(){for(const id of ['domain-heart','domain-bone','hud-heart','hud-bone','next-action','explain','confirm-review','cancel-review','message'])$(id).disabled=busy;$('message-form').querySelector('button').disabled=busy;}
+function updateButtons(){for(const id of ['domain-heart','domain-bone','hud-heart','hud-bone','next-action','explain','confirm-review','cancel-review','message','hud-next-action'])$(id).disabled=busy;$('message-form').querySelector('button').disabled=busy;$('hud-next-action').disabled=busy||Boolean(state?.requested);}
 // Keep the link on the same frozen check that the wearer is looking at.
 function updateSharedCaseLink() {
   if (!webDemo || !states.cardiovascular?.reading) return;
@@ -32,7 +54,7 @@ function updateSharedCaseLink() {
 function render(){if(!state)return;states[state.domain]=state;domain=state.domain;const bone=domain==='bone';$('domain-heart').setAttribute('aria-pressed',String(!bone));$('domain-bone').setAttribute('aria-pressed',String(bone));$('scene-domain').textContent=bone?'LEFT HIP / MEASUREMENT CONTEXT':'HEART / MEASUREMENT CONTEXT';$('scene-evidence').textContent=(state.evidenceIds?.length??0)+' SOURCE REFERENCES';scene.setState(state);$('reading-label').textContent=state.label;$('quality').textContent='SYNTHETIC · '+state.quality;
  const change=state.decision?.percentChange;$('reading-value').textContent=bone?(Number.isFinite(change)?change.toFixed(1):'—'):(state.quality==='ok'?state.reading?.value??'—':'—');$('reading-unit').textContent=bone?'% vs prior scan':'bpm';$('state-copy').textContent=state.decision?.message??(!bone&&state.performed&&['watch','alert'].includes(state.decision?.level)?'The repeat check used your original reference, and the change is still present.':state.decision?.reason??'');
  $('confirmation').hidden=!pending;if(pending)$('confirmation-summary').textContent='Save the '+(pending.domain==='bone'?'bone':'heart-rate')+' measurements on this device. Nothing is sent to a clinician.';
- $('next-action').textContent=state.requested?'Review saved':bone||state.performed?'Prepare review':'Check again';$('save-status').textContent=state.requested?'Request saved here. Not delivered to a clinician.':'Your review requests stay on this device.';updateIndicators();updateButtons();updateSharedCaseLink();}
+ $('next-action').textContent=state.requested?'Review saved':bone||state.performed?'Prepare review':'Check again';$('save-status').textContent=state.requested?'Request saved here. Not delivered to a clinician.':'Your review requests stay on this device.';updateIndicators();updateButtons();updateSharedCaseLink();renderCrewCase();}
 function showMode(next){mode=next;scene.setMode(next);document.querySelector('.visual').dataset.mode=next;for(const [id,value]of[['show-focus','focus'],['show-body','body'],['show-glasses','glasses']])$(id).setAttribute('aria-pressed',String(next===value));$('body-label').hidden=next!=='body';$('device-notes').hidden=next!=='glasses';$('view-hint').textContent=next==='body'?'BODY CONTEXT / ON REQUEST':'SIMULATED VIEW THROUGH THE LENSES';}
 async function loadEvidence(){try{evidence=await api('/api/evidence');for(const[k,id]of[['bronze','bronze-count'],['silver','silver-count'],['gold','gold-count'],['quarantine','quarantine-count']])$(id).textContent=evidence.counts[k];$('evidence-summary').textContent='Seed 142 · raw observations → validation / quarantine → comparable measurements → derived state. All physiological data are synthetic.';const summary={seed:evidence.seed,counts:evidence.counts,domain:state?.domain,reading:state?.reading,baseline:state?.baseline,rules:state?.rules,evidenceIds:state?.evidenceIds};$('evidence-json').textContent=JSON.stringify(summary,null,2);}catch(error){$('evidence-summary').textContent=error.message;}}
 function addMessage(text,who='astra'){if(who==='user')return;const bubble=document.createElement('div');bubble.className='bubble';const label=document.createElement('small');label.textContent='ASTRA';const content=document.createElement('span');content.textContent=text;bubble.append(label,content);$('conversation').replaceChildren(bubble);$('scene-summary').textContent=text;}
@@ -48,6 +70,10 @@ async function init(){try{await connect();const health=await api('/health');$('m
 for(const id of ['domain-heart','hud-heart'])$(id).addEventListener('click',()=>setDomain('cardiovascular'));for(const id of ['domain-bone','hud-bone'])$(id).addEventListener('click',()=>setDomain('bone'));
 for(const[id,next]of[['show-focus','focus'],['show-body','body'],['show-glasses','glasses']])$(id).addEventListener('click',()=>{if(next==='glasses'){resetIntro();return;}showMode(next);});
 $('explain').addEventListener('click',()=>turn('Show medical details'));$('next-action').addEventListener('click',()=>turn(domain==='bone'||state?.performed?'Request review':'Check again'));$('confirm-review').addEventListener('click',()=>turn('Confirm save'));$('cancel-review').addEventListener('click',()=>turn('Cancel'));
+$('hud-next-action').onclick=()=>{if(!busy)void turn(domain==='bone'||state?.performed?'Request review':'Check again');};
+$('hud-ask').onclick=()=>{document.querySelector('.text-input').open=true;$('message').focus();};
+$('hud-details').onclick=async()=>{await turn('Show medical details');$('evidence-detail').scrollIntoView({block:'start',behavior:'smooth'});};
+$('hud-messages').onclick=()=>caseThread?.focus();
 $('message-form').addEventListener('submit',event=>{event.preventDefault();const value=$('message').value;$('message').value='';void turn(value);});$('toggle-evidence').addEventListener('click',()=>{const show=$('evidence-detail').hidden;$('evidence-detail').hidden=!show;$('toggle-evidence').setAttribute('aria-expanded',String(show));if(show)void loadEvidence();});
 function resetCapture(){recording=false;frames=[];preRoll=[];quietMs=0;totalMs=0;speechMs=0;}
 function setVoiceState(text){$('voice-state').textContent=text;$('voice-state').dataset.active=String(micOn);document.querySelector('.visual').dataset.listening=String(micOn&&!speaking);}
@@ -80,4 +106,4 @@ $('skip-intro').addEventListener('click',()=>{scene.setMode('focus');});
 $('replay-intro').addEventListener('click',resetIntro);
 for(const marker of document.querySelectorAll('#body-art .anatomy-marker'))marker.addEventListener('click',()=>setDomain(marker.dataset.zone==='heart'?'cardiovascular':'bone'));
 // AI assistance: Anthropic Claude. Judges may return weeks later: put the web demo back to its first state.
-$('reset-demo').addEventListener('click',()=>{webDemo?.resetWebDemo();for(const key of ['astravital-ground-actions-v1','astra-session']){try{localStorage.removeItem(key);}catch{}}location.reload();});
+$('reset-demo').addEventListener('click',()=>{webDemo?.resetWebDemo();for(const key of ['astravital-ground-actions-v1','astra-session',MESSAGE_KEY]){try{localStorage.removeItem(key);}catch{}}location.reload();});
