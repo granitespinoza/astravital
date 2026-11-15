@@ -51,6 +51,13 @@ Requisitos: Node.js 22.13 o superior. La instalación necesita internet una vez;
 
 **Qué está haciendo Claude ahora:** una demo web que funciona sin servidor (se publicará en https://granitespinoza.github.io/astravital/ al fusionar en `main`), CI con pruebas automáticas, un kit de demo (capturas, guion de 30 s, deck de 7 diapositivas) y una revisión al estilo de los jueces.
 
+## Estado al pausar Claude (15 nov, mañana)
+
+- **Hecho y subido:** demo web que funciona sin servidor (`app/web-demo.js`): Astra ejecuta en el navegador el mismo archivo de reglas que el servidor, y una prueba demuestra que da respuestas idénticas. Workflows de CI y de GitHub Pages en `.github/workflows/`.
+- **Para publicar la demo en vivo:** fusionar el PR #2 en `main`. El workflow "Deploy web demo" la publica en https://granitespinoza.github.io/astravital/ (comprobadlo en la pestaña Actions). GitHub Pages ya está activado.
+- **Pendiente de comprobar:** que la demo web se vea bien en el navegador (abrir esa URL, recorrer la entrada, preguntar por el corazón y guardar una revisión) y que el CI pase en el PR.
+- **En pausa:** un kit de demo (capturas, guion de 30 s y deck de 7 diapositivas) y una revisión al estilo de los jueces. Si al volver no están en el repo, se rehacen.
+
 ## Qué falta (por prioridad)
 
 1. **Fusionar `chore/hackathon-coherence` en `main`** (PR y revisión de una persona del equipo).
