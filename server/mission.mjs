@@ -1,0 +1,170 @@
+// AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
+import {randomUUID} from 'node:crypto';
+import {decide, policy, SOL} from '../app/engine.js';
+import {ORIGIN, reading, seeded} from '../app/scenarios.js';
+
+const domain = 'cardiovascular';
+const crew = [
+  {id:'crew-01', name:'Jordan Lee', offset:-5},
+  {id:'crew-02', name:'Riley Chen', offset:3},
+  {id:'crew-03', name:'Alex Morgan', offset:0},
+  {id:'crew-04', name:'Taylor Reed', offset:5},
+];
+const settings = policy();
+const scenario = id => 'lan-' + id;
+
+function reject(message, status = 400) {
+  throw Object.assign(new Error(message), {status});
+}
+
+export function createMission({database, transaction, insertObservation, observations, seed}) {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS mission_ack (
+      evidence_id TEXT PRIMARY KEY REFERENCES silver(id), acknowledged_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS mission_report (
+      id TEXT PRIMARY KEY, kind TEXT NOT NULL, status TEXT NOT NULL,
+      snapshot_json TEXT NOT NULL, created_at TEXT NOT NULL,
+      delivered_at TEXT, reviewed_at TEXT
+    );
+  `);
+
+  function getMember(id) {
+    const member = crew.find(item => item.id === id);
+    if (!member) reject('Unknown crew member.', 404);
+    return member;
+  }
+
+  function snapshot(id, rows = observations(domain, scenario(id))) {
+    const {id:crewId,name} = getMember(id);
+    const history = rows.filter(row => row.observation.id.startsWith('history-'));
+    const samples = rows.filter(row => row.observation.id.startsWith('packet-'));
+    const latest = samples.at(-1);
+    const current = latest?.observation;
+    const reference = history.map(row => row.observation);
+    const first = samples[0]?.observation;
+    const frozen = first ? decide(first, reference, first.observedAt, settings).baseline : null;
+    const decision = decide(current ?? null, reference, current?.observedAt ?? ORIGIN, settings, frozen);
+    const baseline = decision.baseline?.n ? decision.baseline : null;
+    const evidenceIds = [...history.filter(row => baseline?.ids.includes(row.observation.id)), ...(latest ? [latest] : [])].map(row => row.id);
+    return {crewId,name,simulated:true,missionDay:samples.length,reading:current ?? null,decision,
+      evidenceIds, latestEvidenceId:latest?.id ?? null,
+      receivedAt:latest ? database.prepare(`
+        SELECT bronze.ingested_at AS stamp FROM bronze JOIN silver ON silver.bronze_id=bronze.id WHERE silver.id=?
+      `).get(latest.id).stamp : null,
+      acknowledgedAt:latest ? database.prepare('SELECT acknowledged_at FROM mission_ack WHERE evidence_id=?').get(latest.id)?.acknowledged_at ?? null : null,
+      recent:samples.slice(-8).map(row => ({evidenceId:row.id,value:row.observation.value,observedAt:row.observation.observedAt})),
+    };
+  }
+
+  function updateGold(id, state) {
+    const key = scenario(id);
+    database.prepare(`INSERT INTO gold VALUES (?,?,?,?,?)
+      ON CONFLICT(domain,scenario) DO UPDATE SET snapshot_json=excluded.snapshot_json,updated_at=excluded.updated_at
+    `).run('gold:' + key, domain, key, JSON.stringify(state), new Date().toISOString());
+    return state;
+  }
+
+  function referenceFor(member) {
+    const random = seeded(seed + member.offset);
+    return Array.from({length:14}, (_,index) => {
+      const day = index - 13;
+      const raw = reading('history-' + day, Math.round(57 + random()*8 + member.offset), ORIGIN + day*SOL);
+      return {...raw,crewId:member.id,source:'Synthetic mission reference'};
+    });
+  }
+
+  function seedHistory(member) {
+    const key = scenario(member.id);
+    if (observations(domain,key).length) return;
+    // Fixed synthetic personal history. Each packet advances that member by one sol.
+    for (const row of referenceFor(member)) insertObservation(domain,key,row,'mission-reference-v1');
+  }
+
+  function getCrew(id) {
+    const member = getMember(id);
+    const state = snapshot(id);
+    const firstTime = ORIGIN + SOL;
+    const sample = {...reading('preview',61 + member.offset,firstTime),crewId:id};
+    const {mean,sd} = state.decision.baseline ?? decide(sample,referenceFor(member),firstTime,settings).baseline;
+    const profiles = {steady:Math.round(mean),elevated:Math.ceil(mean + settings.watch*sd),high:Math.ceil(mean + (settings.alert + 1)*sd)};
+    return {...state, profiles};
+  }
+
+  return {
+    getCrew,
+    getCmo() { return {crew:crew.map(member => snapshot(member.id))}; },
+
+    ingest(id, {packetId,value,simulated} = {}) {
+      const member = getMember(id);
+      if (simulated !== true || typeof packetId !== 'string' || !/^[a-f0-9]{32}$/.test(packetId) ||
+          !Number.isInteger(value) || value < 35 || value > 150) {
+        reject('Submit a valid synthetic resting sample and packet ID.');
+      }
+      return transaction(() => {
+        seedHistory(member);
+        const key = scenario(id);
+        const rows = observations(domain,key);
+        const observationId = 'packet-' + packetId;
+        const existing = rows.find(row => row.observation.id === observationId);
+        if (existing) {
+          if (existing.observation.value !== value) reject('Packet ID already exists with a different value.',409);
+          return {duplicate:true,packetEvidenceId:existing.id,state:getCrew(id)};
+        }
+        const latestPacket = rows.filter(row => row.observation.id.startsWith('packet-')).at(-1);
+        const observedAt = (latestPacket?.observation.observedAt ?? ORIGIN) + SOL;
+        const raw = reading(observationId,value,observedAt);
+        insertObservation(domain,key,{...raw,crewId:id,source:'Synthetic crew browser simulator'},'mission-phone-v1');
+        const state = updateGold(id,snapshot(id));
+        return {duplicate:false,packetEvidenceId:state.latestEvidenceId,state:getCrew(id)};
+      });
+    },
+
+    acknowledge({crewId,evidenceId,confirmed} = {}) {
+      if (confirmed !== true) reject('Confirm the CMO acknowledgement.');
+      return transaction(() => {
+        const state = snapshot(crewId);
+        if (!evidenceId || state.latestEvidenceId !== evidenceId) reject('The selected reading changed. Refresh and review the latest reading.',409);
+        if (!['watch','alert'].includes(state.decision.level)) reject('Only WATCH or ALERT readings can be acknowledged.');
+        database.prepare('INSERT OR IGNORE INTO mission_ack VALUES (?,?)').run(evidenceId,new Date().toISOString());
+        return updateGold(crewId,snapshot(crewId));
+      });
+    },
+
+    getReports() {
+      return database.prepare('SELECT * FROM mission_report ORDER BY created_at DESC,id').all().map(row => ({
+        id:row.id, kind:row.kind, status:row.status, createdAt:row.created_at,
+        deliveredAt:row.delivered_at, reviewedAt:row.reviewed_at,
+        crew:row.status === 'queued' ? null : JSON.parse(row.snapshot_json),
+      }));
+    },
+
+    queueReport({kind} = {}) {
+      if (!['daily','weekly'].includes(kind)) reject('Select a daily or weekly training report.');
+      return transaction(() => {
+        const roster = crew.map(member => snapshot(member.id));
+        if (!roster.some(member => member.reading)) reject('Receive a crew reading before queuing a report.');
+        const id = randomUUID();
+        database.prepare('INSERT INTO mission_report VALUES (?,?,?,?,?,NULL,NULL)')
+          .run(id,kind,'queued',JSON.stringify(roster),new Date().toISOString());
+        return {id,kind,status:'queued'};
+      });
+    },
+
+    updateReport({id,action} = {}) {
+      if (typeof id !== 'string' || !['deliver','review'].includes(action)) reject('Select a report action.');
+      return transaction(() => {
+        const report = database.prepare('SELECT status FROM mission_report WHERE id=?').get(id);
+        if (!report) reject('Report not found.',404);
+        if (action === 'deliver' && report.status === 'queued') {
+          database.prepare("UPDATE mission_report SET status='delivered',delivered_at=? WHERE id=?").run(new Date().toISOString(),id);
+        } else if (action === 'review' && report.status === 'delivered') {
+          database.prepare("UPDATE mission_report SET status='reviewed',reviewed_at=? WHERE id=?").run(new Date().toISOString(),id);
+        } else {
+          reject('This report is no longer in the required state.',409);
+        }
+        return {id,status:action === 'deliver' ? 'delivered' : 'reviewed'};
+      });
+    },
+  };
+}

@@ -36,3 +36,7 @@
 | Continuation of Codex's glasses-intro and voice work after Codex reached its usage limit | Commits on the `chore/hackathon-coherence` branch |
 
 [Evidence] Include recognizer binary/model source, pinned version, checksum and license in its generated or committed manifest before redistributing artifacts. The project has no chosen overall license; the licenses of fonts, recognizer/model and future voices remain separate. No remote medical generative service, Azure deployment or native SPECS integration is established by these files.
+
+## Mission LAN integration
+
+[Evidence] OpenAI Codex adapted the team’s local v0.5 and v0.6 demonstrators to the main Node.js and SQLite architecture. The contribution covers the crew transport, pairing, CMO console, simulated Ground reports, verification and setup notes. The mission interface uses the existing ASTRAVITAL styles and fonts. It adds no model inference, generated assets or external runtime services.

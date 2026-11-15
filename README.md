@@ -141,6 +141,8 @@ npm run demo
 
 ### API
 
+For the three-level mission rehearsal, see [Mission LAN demonstration](docs/MISSION-LAN.md). It adds a phone crew simulator, a laptop CMO view and a simulated Ground inbox to the same local database.
+
 | Route | Purpose |
 | --- | --- |
 | `GET /health` | API, database, seed and voice readiness |

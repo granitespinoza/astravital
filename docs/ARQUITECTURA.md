@@ -55,6 +55,8 @@ SQLite on local disk owns the logical layers and review events. These medallion 
 
 ## API and data contracts
 
+The optional [mission LAN profile](MISSION-LAN.md) adds a scoped synthetic crew client, an onboard CMO console and a simulated Ground inbox. It uses this same SQLite file and the main cardiovascular rule. The phone queue retains only unconfirmed packets. Report receipt is a local exercise and its states are stored in SQLite.
+
 | Contract | Meaning |
 | --- | --- |
 | `GET /health` | API/database/seed and voice capability status; availability is not implied by a green UI alone |

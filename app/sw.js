@@ -1,6 +1,6 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 // Update the cache version when releasing a changed app shell.
-const cacheName = 'astravital-dashboard-v10';
+const cacheName = 'astravital-dashboard-v11';
 const prefix = 'astravital-dashboard-';
 const files = [
   './', './index.html', './legacy.html', './experience.css?v=10', './experience.js?v=10', './view3d.bundle.js?v=10', './web-demo.bundle.js?v=10', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',

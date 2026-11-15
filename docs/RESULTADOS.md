@@ -112,3 +112,16 @@ AI assistance: Anthropic Claude. Machine: macOS, Node 22.23.2, seed 142.
 | Voice reply in the browser | Asked "How is my heart?" | `POST /api/speak` returned 200; Astra entered the SPEAKING state |
 
 Limits: browser checks were visual, on one machine and one browser; no user study; synthetic data only.
+
+## Mission LAN integration — 2026-11-15
+
+Windows, Node.js 26.13.1, base commit `13e48de`, synthetic seed 142.
+
+| Check | Method | Result |
+| --- | --- | --- |
+| Existing suite and mission profile | `node --test` | 63 tests, 61 passed, 0 failed, two optional voice integrations skipped. |
+| Crew → CMO → Ground | `tests/mission.test.js`, two scoped HTTP clients on loopback | WATCH and ALERT, conflicting packet rejection, preserved baseline, Gold and Silver lineage, CMO acknowledgement, queued report with withheld content, simulated receipt and persistent reviewed state after restart. |
+| CMO desktop startup | Edge headless opening the loopback mission page | CMO console rendered, connection status became connected and the synthetic roster appeared. |
+| Physical phone hotspot | Initial Wi-Fi interface probe and browser review | The Wi-Fi address differed from the old v0.6 address. A Wi-Fi-address request from the managed test environment timed out. A real phone and the full browser interaction must still be verified. |
+
+The laptop and a physical phone were not tested together. The simulated Ground states were verified in HTTP and SQLite; they do not represent an Earth transmission.

@@ -1,0 +1,24 @@
+/* AI assistance: OpenAI Codex. Shared palette and fonts from experience.css. */
+.mission-header a { color: var(--cyan); }
+.mission { max-width: 1100px; padding: 2rem 1rem 3rem; }
+.mission h1 { font-size: clamp(2.25rem, 6vw, 4rem); line-height: 1; margin: .5rem 0 1rem; }
+.mission h2 { margin: 0 0 .65rem; }
+.mission h3 { margin: .15rem 0 .55rem; }
+.mission p { line-height: 1.45; }
+.mission nav { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1.2rem 0; }
+.mission nav [aria-pressed="true"] { border-color: var(--lime); color: var(--lime); }
+.mission-panel { border: 1px solid var(--line); background: #0d1011; border-radius: 14px; padding: clamp(1rem, 3vw, 1.6rem); margin: 1rem 0; }
+.mission form { display: flex; align-items: end; flex-wrap: wrap; gap: .75rem; margin: .9rem 0; }
+.mission label { display: block; margin: .55rem 0 .25rem; }
+.mission input, .mission select { min-height: 44px; padding: .65rem; color: inherit; background: #171a1b; border: 1px solid var(--line); border-radius: 8px; }
+#pair-link { display: block; width: 100%; }
+.mission-primary { background: var(--lime); color: #111; border-color: var(--lime); }
+.mission-primary:hover:not(:disabled) { background: #d1e206; }
+.mission-roster, .mission-reports { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit,minmax(min(100%,250px),1fr)); margin-top: .9rem; }
+.mission-card { border: 1px solid var(--line); background: #141719; border-radius: 10px; padding: 1rem; min-width: 0; }
+.mission-card details { margin-top: .7rem; overflow-wrap: anywhere; }
+.mission-card li { margin: .35rem 0; }
+.mission-value { font-size: 1.9rem; margin: .1rem 0; font-weight: 700; }
+.mission-status { color: var(--state,var(--cyan)); font-weight: 700; }
+.mission-hint, #connection { color: var(--muted); }
+.mission-feedback { color: var(--cyan); }

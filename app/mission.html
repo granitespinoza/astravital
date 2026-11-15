@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- AI assistance: OpenAI Codex. See docs/SI-USAGE.md. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#030405">
+  <title>ASTRAVITAL · Mission console</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./experience.css">
+  <link rel="stylesheet" href="./mission.css">
+  <script type="module" src="./mission.js"></script>
+</head>
+<body>
+  <header class="mission-header">
+    <span class="brand"><span>✦</span> ASTRAVITAL</span>
+    <span class="eyebrow">SIMULATED DATA</span>
+    <a id="glasses-link" href="./" hidden>Glasses experience ↗</a>
+  </header>
+  <main class="mission">
+    <p class="eyebrow" id="level">MISSION CONSOLE</p>
+    <h1 id="heading">Mission health</h1>
+    <p id="connection" role="status">Connecting to the mission laptop…</p>
+    <nav id="staff-nav" aria-label="Mission views" hidden>
+      <button type="button" id="show-cmo" aria-pressed="true">CMO</button>
+      <button type="button" id="show-ground" aria-pressed="false">Ground simulation</button>
+    </nav>
+
+    <section id="crew-panel" class="mission-panel" hidden>
+      <h2>Resting heart rate</h2>
+      <div id="crew-state"></div>
+      <form id="sample-form">
+        <label for="profile">Synthetic reading</label>
+        <select id="profile" name="profile">
+          <option value="steady">Near personal baseline</option>
+          <option value="elevated">Above personal baseline</option>
+          <option value="high">Strong deviation</option>
+        </select>
+        <button type="submit" class="mission-primary" id="send-sample" disabled>Send simulated sample</button>
+      </form>
+      <p id="queue" role="status"></p>
+    </section>
+
+    <div id="cmo-panel" hidden>
+      <section class="mission-panel">
+        <h2>Pair a crew member</h2>
+        <p id="pair-mode"></p>
+        <label for="member">Simulated crew member</label>
+        <select id="member"></select>
+        <label for="pair-link">Crew link</label>
+        <input id="pair-link" type="text" readonly spellcheck="false">
+        <p class="mission-hint">Open this link on the phone. It grants access to that crew member's synthetic data for this server session.</p>
+      </section>
+      <section class="mission-panel">
+        <h2>Crew readings</h2>
+        <p id="review-count"></p>
+        <div id="roster" class="mission-roster"></div>
+      </section>
+    </div>
+
+    <section id="ground-panel" class="mission-panel" hidden>
+      <h2>Report queue and simulated inbox</h2>
+      <p class="mission-hint">Queued reports remain onboard. Simulated receipt reveals their contents here.</p>
+      <form id="report-form">
+        <label for="report-kind">Report type</label>
+        <select id="report-kind">
+          <option value="daily">Daily overview</option>
+          <option value="weekly">Weekly overview</option>
+        </select>
+        <button type="submit" class="mission-primary">Queue simulated report</button>
+      </form>
+      <div id="reports" class="mission-reports"></div>
+    </section>
+    <p id="action-result" role="status" class="mission-feedback"></p>
+  </main>
+</body>
+</html>

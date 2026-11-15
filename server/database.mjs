@@ -8,6 +8,7 @@ import {sample, scenarios} from '../app/scenarios.js';
 import {expectedEvent} from '../app/workflow.js';
 import {getBoneScenario, boneScenarios, BONE_CONTRACT_ID} from '../app/bone-data.js';
 import {assessBone} from '../app/bone.js';
+import {createMission} from './mission.mjs';
 
 const defaults = {cardiovascular:'deviation', bone:'change'};
 const parse = value => JSON.parse(value);
@@ -17,7 +18,7 @@ function fail(message, code = 'invalid-request') { const error = new Error(messa
 function domainName(domain) { const result = domain === 'heart' ? 'cardiovascular' : domain; if (!Object.hasOwn(defaults, result)) fail('Unknown health domain.'); return result; }
 function scenarioName(domain, scenario) { const result = scenario ?? defaults[domain]; if (!Object.hasOwn(domain === 'bone' ? boneScenarios : scenarios, result)) fail('Unknown domain scenario.'); return result; }
 
-export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.sqlite', import.meta.url)), seed = 142} = {}) {
+export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.sqlite', import.meta.url)), seed = 142, mission = false} = {}) {
   if (seed !== 142) fail('Only the documented seed 142 is supported by these fixtures.');
   if (path !== ':memory:') mkdirSync(dirname(path), {recursive:true});
   const database = new DatabaseSync(path);
@@ -38,9 +39,9 @@ export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.s
   function transaction(work) { database.exec('BEGIN IMMEDIATE'); try { const value = work(); database.exec('COMMIT'); return value; } catch (error) { database.exec('ROLLBACK'); throw error; } }
   const getReview = (domain,scenario) => { const row = database.prepare('SELECT payload_json FROM reviews WHERE domain=? AND scenario=?').get(domain,scenario); return row ? parse(row.payload_json) : null; };
   const observations = (domain,scenario) => database.prepare('SELECT id,observation_id,normalized_json FROM silver WHERE domain=? AND scenario=? ORDER BY observed_at,id').all(domain,scenario).map(row => ({id:row.id, observation:parse(row.normalized_json)}));
-  function insertObservation(domain,scenario,raw) {
+  function insertObservation(domain,scenario,raw,generator = domain === 'bone' ? 'bone-fixture-v1' : 'heart-fixture-v1') {
     const id = `bronze:${domain}:${scenario}:${raw.id ?? 'invalid'}`;
-    database.prepare('INSERT OR IGNORE INTO bronze VALUES (?,?,?,?,?,?)').run(id,domain,scenario,json(raw),json({generator:domain === 'bone' ? 'bone-fixture-v1' : 'heart-fixture-v1', seed, simulated:true}),now());
+    database.prepare('INSERT OR IGNORE INTO bronze VALUES (?,?,?,?,?,?)').run(id,domain,scenario,json(raw),json({generator,seed,simulated:true}),now());
     const reasons = [];
     if (!raw || raw.simulated !== true || typeof raw.id !== 'string' || typeof raw.crewId !== 'string') reasons.push('invalid-identity-or-simulation');
     if (domain === 'cardiovascular') {
@@ -83,6 +84,7 @@ export function createDatabase({path = fileURLToPath(new URL('../.runtime/demo.s
     for (const [domain,ids] of [['cardiovascular',Object.keys(scenarios)],['bone',Object.keys(boneScenarios)]]) for (const scenario of ids) refresh(domain,scenario);
   });
   const api = {
+    mission: mission ? createMission({database,transaction,insertObservation,observations,seed}) : null,
     health() { return {ok:true,storage:'sqlite',schemaVersion:1,seed,simulated:true,counts:api.getEvidence().counts}; },
     getState(domain='cardiovascular',scenario) { domain=domainName(domain);scenario=scenarioName(domain,scenario);return parse(database.prepare('SELECT snapshot_json FROM gold WHERE domain=? AND scenario=?').get(domain,scenario).snapshot_json); },
     getEvidence() {
