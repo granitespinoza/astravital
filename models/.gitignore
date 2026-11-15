@@ -1,0 +1,3 @@
+# Model weights are downloaded and verified locally, never committed.
+*.bin
+*.part-*

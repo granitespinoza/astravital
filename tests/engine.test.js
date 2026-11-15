@@ -2,7 +2,7 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { decide, HOUR, policy, RULE, SOL } from '../app/engine.js';
+import { decide, traceDecision, HOUR, policy, RULE, SOL } from '../app/engine.js';
 import { ORIGIN, reading, sample, seeded } from '../app/scenarios.js';
 
 const settings = policy();
@@ -46,7 +46,7 @@ test('lower window boundary is inclusive and the current measurement is exclusiv
 });
 
 test('WATCH and ALERT apply at exact positive and negative z-score boundaries', () => {
-  const baseline = { mean: 60, sd: 2, n: 5, window: 14, ids: [] };
+  const baseline = { mean: 60, sd: 2, n: 5, window: 14, ids: ['b1','b2','b3','b4','b5'] };
   const cases = [[53, 'alert'], [54, 'alert'], [55, 'watch'], [56, 'watch'], [57, 'ok'],
     [63, 'ok'], [64, 'watch'], [65, 'watch'], [66, 'alert'], [67, 'alert']];
   for (const [value, expected] of cases) {
@@ -193,4 +193,109 @@ test('S1–S3: evaluate the same seeded replays with 7, 14 and 28-sol windows', 
       missedEvents: Number(drift.firstFlag === null) + Number(acute.firstFlag === null),
     }));
   }
+});
+
+
+test('invalid clock and rule configuration block assessment without a z-score', () => {
+  const {current, history, now} = sample('deviation');
+  const invalid = [
+    {...settings, window:0}, {...settings, window:Infinity}, {...settings, dayMs:NaN},
+    {...settings, minSamples:1}, {...settings, staleMs:-1},
+    {...settings, watch:0}, {...settings, alert:settings.watch},
+  ];
+  for (const config of invalid) {
+    const trace = traceDecision(current, history, now, config);
+    assert.equal(trace.decision.quality, 'suspect');
+    assert.equal(trace.decision.z, null);
+    assert.equal(trace.decision.level, null);
+    assert.equal(trace.stages[0].state, 'blocked');
+    assert.ok(trace.stages.slice(1).every(stage => stage.state === 'skipped'));
+  }
+  for (const clock of [NaN, Infinity, -Infinity]) {
+    assert.equal(decide(current, history, clock, settings).quality, 'suspect');
+  }
+  assert.equal(decide(current, null, now, settings).quality, 'suspect');
+});
+
+test('duplicate history IDs cannot inflate baseline and conflicting copies are excluded', () => {
+  const current = at(72, 0);
+  const history = [58, 59, 60, 61, 62].map((value,index) => at(value,index-5));
+  const clean = decide(current, history, ORIGIN, settings);
+  const duplicated = traceDecision(current, [...history, ...history.map(row => ({...row}))], ORIGIN, settings);
+  assert.deepEqual(duplicated.decision, clean);
+  assert.equal(duplicated.excludedCount, history.length);
+  assert.deepEqual(duplicated.includedIds, history.map(row => row.id));
+  const conflict = {...history[0], value:90};
+  for (const rows of [[...history, conflict], [conflict, ...history]]) {
+    const decision = decide(current, rows, ORIGIN, settings);
+    assert.equal(decision.baseline.n, 4);
+    assert.equal(decision.quality, 'insufficient-history');
+    assert.equal(decision.level, null);
+    assert.ok(!decision.baseline.ids.includes(history[0].id));
+  }
+});
+
+test('malformed history rows are excluded and malformed current fields never assess as OK', () => {
+  const {current, history, now} = sample('normal');
+  const decision = decide(current, [...history, null, undefined, {}, 3, {...history[0], id:''}], now, settings);
+  assert.deepEqual(decision, decide(current, history, now, settings));
+  for (const change of [{id:''}, {crewId:''}, {source:''}, {unit:'bpm'}, {indicator:'skin_temperature'},
+    {observedAt:NaN}, {simulated:false}, {value:'61'}]) {
+    const invalid = decide({...current, ...change}, history, now, settings);
+    assert.equal(invalid.quality, 'suspect');
+    assert.equal(invalid.z, null);
+    assert.equal(invalid.level, null);
+  }
+});
+
+test('invalid frozen statistics and numeric overflow cannot create a false OK or ALERT', () => {
+  const {current, history, now} = sample('deviation');
+  const baseline = decide(current, history, now, settings).baseline;
+  for (const change of [{mean:NaN}, {mean:Infinity}, {sd:-1}, {sd:Infinity}, {n:1.5}, {ids:['a','a']},
+    {n:100, ids:[]}, {n:100}, {ids:[]}, {window:7}]) {
+    const invalid = traceDecision(current, history, now, settings, {...baseline, ...change});
+    assert.equal(invalid.decision.quality, 'insufficient-history');
+    assert.equal(invalid.decision.z, null);
+    assert.equal(invalid.decision.level, null);
+    assert.equal(invalid.stages[3].state, 'blocked');
+    assert.equal(invalid.stages[4].state, 'skipped');
+  }
+  const overflow = decide(at(72,0), [-5,-4,-3,-2,-1].map(day => at(1e308,day)), ORIGIN, settings);
+  assert.equal(overflow.quality, 'insufficient-history');
+  assert.equal(overflow.level, null);
+});
+
+test('trace exposes the same decision and ordered quality-first flow without changing the decision shape', () => {
+  const {current,history,now} = sample('deviation');
+  const trace = traceDecision(current,history,now,settings);
+  assert.deepEqual(trace.decision,decide(current,history,now,settings));
+  assert.deepEqual(trace.stages.map(stage => stage.id), ['ingest','quality','context','baseline','deviation']);
+  assert.ok(trace.stages.every(stage => stage.state === 'pass'));
+  assert.equal(trace.includedIds.length, trace.decision.baseline.n);
+  assert.deepEqual(Object.keys(trace.decision).sort(), ['baseline','level','quality','reason','rule','slope','z']);
+  for (const scenario of ['fault','stale','suspect']) {
+    const source = sample(scenario);
+    const blocked = traceDecision(source.current,source.history,source.now,settings);
+    assert.equal(blocked.stages[0].state,'pass');
+    assert.equal(blocked.stages[1].state,'blocked');
+    assert.ok(blocked.stages.slice(2).every(stage => stage.state === 'skipped'));
+    assert.equal(blocked.decision.level,null);
+  }
+  const frozen = traceDecision(current,history,now,settings,trace.decision.baseline);
+  assert.deepEqual(frozen.decision,trace.decision);
+  assert.match(frozen.stages[3].detail,/Frozen/);
+});
+
+
+test('empty eligible history retains its empty baseline and asks for more history', () => {
+  const current = at(72,0);
+  const trace = traceDecision(current,[],ORIGIN,settings);
+  assert.equal(trace.decision.quality,'insufficient-history');
+  assert.match(trace.decision.reason,/More valid resting readings/);
+  assert.deepEqual(trace.decision.baseline,{mean:0,sd:0,n:0,window:14,ids:[]});
+  assert.equal(trace.decision.z,null);
+  assert.equal(trace.decision.level,null);
+  assert.equal(trace.stages[3].state,'blocked');
+  assert.match(trace.stages[3].detail,/0 valid readings/);
+  assert.equal(trace.stages[4].state,'skipped');
 });

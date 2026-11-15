@@ -2,8 +2,12 @@
 name: spaceapps-2026
 description: Official NASA Space Apps Challenge 2026 rules - deadlines, Global Judging eligibility, project form fields, AI (SI) disclosure, 1-5 judging rubric and awards - plus a pre-submission audit. Use when filling or reviewing the project page, checking eligibility, scoring against the rubric, or asking "what is missing before we submit".
 ---
-
 # NASA Space Apps 2026: reglas, rúbrica y auditoría de entrega
+
+## Estado real y alcance de esta skill (2026-11-14)
+
+La revisión actual no pudo reabrir las guías centrales (502). Las reglas detalladas de abajo conservan la verificación histórica del equipo; escala, descriptores, fechas de resultados y condiciones exactas requieren reconfirmación antes de enviar. Consultar `docs/ENTREGA.md` para el estado vigente. No presentar esta skill como una nueva verificación web.
+
 
 Fuentes oficiales (publicadas el 13 de noviembre de 2026):
 - https://www.spaceappschallenge.org/resources/project-submission-guide/

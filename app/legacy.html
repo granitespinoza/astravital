@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- AI assistance: OpenAI Codex. See docs/SI-USAGE.md. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#07173f">
+  <title>ASTRAVITAL · Astra crew display</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./visor.css"><script type="module" src="./visor.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#visor-stage">Skip to crew display</a>
+  <header class="masthead"><a class="wordmark" href="./"><span aria-hidden="true">✦</span> ASTRAVITAL <small>ASTRA / CREW DISPLAY</small></a><a class="console-link" href="./review.html">Open review console <span aria-hidden="true">↗</span></a></header>
+  <main class="layout">
+    <section class="intro"><p class="eyebrow">GLASSES FIRST. THE MISSION STAYS IN VIEW.</p><h1>Less to read.<br> More to understand<span>.</span></h1><p>A brief signal. A clear next step.<br>A human stays in control.</p><div class="reference">SPECS 27 design reference<br><strong>Browser simulation · not running on glasses</strong></div></section>
+    <section class="display-section" aria-label="Glasses experience simulator">
+      <div class="stage-meta"><span>FIRST-PERSON UI SIMULATION</span><span><i class="dot"></i> EARTH UNAVAILABLE · SIMULATED</span></div>
+      <div id="visor-stage" class="visor-stage" tabindex="-1">
+        <div class="world" aria-hidden="true"><div class="world-grid"></div><div class="habitat-window"><div class="planet"></div><span class="planet-horizon"></span></div><div class="room-edge edge-left"></div><div class="room-edge edge-right"></div><div class="workbench"><div></div><i></i><i></i><i></i></div><div class="world-caption">MARS HABITAT / SCHEMATIC BACKGROUND</div></div>
+        <div class="lens-boundary" aria-hidden="true"></div><div class="center-mark" aria-hidden="true">+</div>
+        <div class="hud-idle" id="hud-idle" hidden><span>ASTRA</span><strong>Nothing needs your attention.</strong><button id="show-hud" type="button">Show status</button></div>
+        <section id="hud-card" class="hud-card" aria-labelledby="hud-headline">
+          <div class="hud-top"><span class="astra-name"><i class="astra-symbol" aria-hidden="true">✦</i> ASTRA</span><span id="hud-label" class="hud-label"></span></div>
+          <p class="hud-kind" id="hud-kind">RESTING HEART RATE</p><h2 id="hud-headline"></h2><p id="hud-caption" class="hud-caption"></p>
+          <div id="hud-main-actions" class="hud-actions"><button type="button" id="hud-action"></button><button type="button" id="hud-why" class="quiet">Why?</button></div>
+          <div id="confirm-panel" class="confirm-panel" hidden><p>Save a request for onboard review?</p><p class="confirm-note">Saved here. No message is sent to a clinician.</p><div class="hud-actions"><button id="hud-confirm" type="button">Confirm save</button><button id="hud-cancel" type="button" class="quiet">Cancel</button></div></div>
+          <div class="hud-footer"><button type="button" id="hud-dismiss">Minimize</button><button type="button" id="hud-replay">Repeat audio</button></div>
+        </section>
+        <section id="body-panel" class="body-panel" aria-label="Body context" hidden>
+          <div class="body-title"><span>BODY CONTEXT</span><button id="body-close" type="button" aria-label="Close body context">×</button></div>
+          <div class="body-content"><svg viewBox="0 0 150 315" role="img" aria-label="Schematic human body. Highlight identifies the monitored system, not a diagnosed injury.">
+            <defs><linearGradient id="body-fill" x1="0" x2="1"><stop stop-color="#79c4ff" stop-opacity=".12"/><stop offset="1" stop-color="#bfdeff" stop-opacity=".04"/></linearGradient></defs>
+            <circle cx="75" cy="29" r="20" class="body-outline"/><path d="M63 50V62L43 70Q36 75 32 91L17 157Q15 165 20 168Q26 170 29 160L46 108L42 162L51 192L48 277Q47 291 56 292Q63 292 64 279L72 208H78L86 279Q87 292 94 292Q103 291 102 277L99 192L108 162L104 108L121 160Q124 170 130 168Q135 165 133 157L118 91Q114 75 107 70L87 62V50" class="body-outline"/>
+            <path d="M75 71V178M53 88Q75 101 97 88M53 105Q75 117 97 105M54 122Q75 133 96 122M58 140Q75 150 92 140M49 170L75 184L101 170M55 190L58 253M95 190L92 253" class="body-bones"/>
+            <circle id="body-heart-highlight" cx="83" cy="102" r="18"/><path id="body-heart" d="M83 111L72 101C65 92 74 86 83 93C92 86 101 92 94 101Z"/>
+            <ellipse id="body-bone-highlight" cx="75" cy="178" rx="30" ry="18" class="bone-outline"/>
+          </svg><div class="body-explanation"><div class="body-choices"><button id="body-heart-button" type="button" aria-pressed="true">Heart rate</button><button id="body-bone-button" type="button" aria-pressed="false">Bone health</button></div><h3 id="body-heading"></h3><p id="body-copy"></p><p class="body-limit" id="body-limit"></p></div></div>
+        </section>
+        <div class="scene-bottom"><span>SIMULATED DATA</span><span id="scene-status">SCENARIO PLAYBACK · FOREGROUND ONLY</span></div>
+      </div>
+      <div class="under-stage"><p id="hud-announcement" role="status" aria-live="polite">Preparing local demo…</p><span id="visor-offline" role="status">Preparing offline access</span></div>
+    </section>
+    <aside class="simulation-desk" aria-labelledby="desk-title">
+      <div class="desk-heading"><h2 id="desk-title">Simulation desk</h2><span>OUTSIDE THE GLASSES</span></div>
+      <label for="visor-scenario">Sensor scenario</label><select id="visor-scenario"></select>
+      <label for="audio-mode">Output audio</label><select id="audio-mode"><option value="off">Muted · text remains available</option><option value="discreet">Discreet · local spoken cues</option></select><p class="desk-note">Synthetic clips are packaged locally. Output is open-ear in the reference design; nearby people may hear it.</p>
+      <details class="voice-tools"><summary>Simulate a voice command</summary><p>Typed intent only. No microphone, wake-word detection or speech recognition is used.</p><label class="sr-only" for="voice-command">Simulated command</label><input id="voice-command" list="voice-options" placeholder="astra explain" autocomplete="off"><datalist id="voice-options"><option value="astra status"><option value="astra explain"><option value="astra check again"><option value="astra request review"><option value="astra confirm save"><option value="astra cancel"><option value="astra dismiss"><option value="astra repeat that"></datalist><button type="button" id="send-intent" class="desk-button">Inject simulated intent</button><p id="intent-feedback" role="status"></p></details>
+      <div class="desk-status"><span>Local review records</span><strong id="visor-event-count">—</strong><p id="visor-storage" role="status">Opening storage…</p></div><button type="button" id="simulate-save-failure" class="desk-secondary" aria-pressed="false">Test next save failure</button>
+    </aside>
+    <footer class="page-footer"><p>REFERENCE PLATFORM ≠ VERIFIED INTEGRATION. Offline ASR, background alerts and native persistence require device tests.</p><p>Body highlights show measurement context, not a diagnosed source of harm. No bone loss is inferred from pulse or an image.</p></footer>
+  </main>
+</body>
+</html>

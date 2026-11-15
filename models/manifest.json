@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "engine": "whisper.cpp",
+  "engineSource": "https://github.com/ggml-org/whisper.cpp",
+  "defaultModel": "base",
+  "license": "MIT",
+  "licenseSource": "https://github.com/openai/whisper/blob/main/LICENSE",
+  "licenseText": "MIT License\n\nCopyright (c) 2022 OpenAI\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+  "source": "https://huggingface.co/ggerganov/whisper.cpp",
+  "revision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+  "hashSource": "https://huggingface.co/api/models/ggerganov/whisper.cpp/revision/5359861c739e955e79d9a303bcbc70fb988958b1?blobs=true",
+  "models": {
+    "base": {"file": "ggml-base.bin", "bytes": 147951465, "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe", "multilingual": true},
+    "tiny": {"file": "ggml-tiny.bin", "bytes": 77691713, "sha256": "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21", "multilingual": true}
+  },
+  "aiAssistance": "OpenAI Codex: local integration and tests, not model training."
+}

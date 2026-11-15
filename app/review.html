@@ -1,0 +1,97 @@
+<!doctype html>
+<!-- AI assistance: OpenAI Codex. See docs/SI-USAGE.md. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07173f">
+  <meta name="description" content="Understand personal heart rate deviations, explore the decision, and keep human review available without Earth. An ASTRAVITAL simulation prototype.">
+  <title>ASTRAVITAL · Review console</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./dashboard.js"></script>
+</head>
+<body>
+  <a href="#workspace" class="skip-link">Skip to workspace</a>
+  <aside class="sidebar">
+    <a class="brand" href="#crew" aria-label="ASTRAVITAL crew overview"><span class="brand-mark" aria-hidden="true">✦</span><span>ASTRAVITAL<small>SUPPORTING REVIEW CONSOLE</small></span></a>
+    <div class="mission-label"><span class="tiny-label">MISSION WORKSPACE</span><span class="prototype-pill">PROTOTYPE / 01</span></div>
+    <nav class="navigation" aria-label="Workspace"><a href="./"><span aria-hidden="true">↖</span><span>Back to crew display</span></a>
+      <a href="#crew" data-view="crew" aria-current="page"><span aria-hidden="true">◉</span><span>Crew overview</span><small>01</small></a>
+      <a href="#detection" data-view="detection"><span aria-hidden="true">⌁</span><span>Detection lab</span><small>02</small></a>
+      <a href="#architecture" data-view="architecture"><span aria-hidden="true">◇</span><span>Data flow</span><small>03</small></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="mission-orbit" aria-hidden="true"><span></span><i></i></div>
+      <p class="tiny-label">DESIGNED FOR DISTANCE</p><p class="sidebar-tagline">Care continues<br>when Earth can't answer.</p>
+      <div class="sidebar-link"><span class="dot dot-amber"></span><div>Earth link unavailable<small>SIMULATED BLACKOUT</small></div></div>
+      <p class="spaceapps-credit">A team project for<br><strong>NASA Space Apps Challenge</strong><br>Independent prototype · No NASA endorsement</p>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span class="breadcrumb">ONBOARD <span>/</span> <strong id="breadcrumb-view">CREW OVERVIEW</strong></span><span class="session"><span class="dot dot-blue"></span> LOCAL COMPUTATION <span class="version">v0.2</span></span></header>
+    <main id="workspace" class="shell" tabindex="-1">
+      <div class="intro">
+        <div><p class="eyebrow" id="view-eyebrow">A CLEARER SIGNAL. A HUMAN DECISION.</p><h1 id="page-title">Crew health overview<span class="title-dot">.</span></h1><p class="intro-copy" id="page-description">Understand your personal baseline. Choose your next step.</p></div>
+        <label class="scenario">SIMULATED SCENARIO<select id="scenario"></select></label>
+      </div>
+      <div class="mission-strip" aria-label="Simulation context">
+        <div><span>CREW MEMBER</span><strong><i class="avatar" aria-hidden="true">03</i> Crew 03</strong></div>
+        <div><span>LOCATION</span><strong>Mars habitat</strong></div>
+        <div><span>MISSION CLOCK</span><strong>Sol 142 <small>· simulation</small></strong></div>
+        <div><span>EARTH CONNECTION</span><strong class="earth-state"><span class="dot dot-amber"></span> Unavailable</strong></div>
+      </div>
+      <div class="notice"><strong><span aria-hidden="true">◇</span> SIMULATED DATA</strong><span>Demonstration only. Statistical deviation, not a diagnosis.</span></div>
+
+      <section id="view-crew" class="view" aria-label="Crew overview">
+        <div class="grid">
+          <section class="card reading" aria-labelledby="metric">
+            <div class="card-head"><div><p class="card-kicker">01 / YOUR SIGNAL</p><h2 id="metric">Resting heart rate</h2></div><span id="status" class="status"></span></div>
+            <div class="pulse"><strong id="value"></strong><span>bpm<small>BEATS PER MINUTE</small></span><svg class="pulse-mark" viewBox="0 0 120 45" aria-hidden="true"><path d="M0 24H24L32 19L40 28L51 4L64 42L76 20L86 24H120"/></svg></div>
+            <dl class="facts"><div><dt>Personal baseline</dt><dd id="baseline"></dd></div><div><dt>Deviation from baseline</dt><dd id="deviation"></dd></div></dl>
+            <dl class="details" id="details"></dl>
+          </section>
+          <section class="card assessment" aria-labelledby="assess">
+            <div class="card-head"><div><p class="card-kicker">02 / UNDERSTAND & ACT</p><h2 id="assess">Your next step</h2></div><span class="human-tag">HUMAN IN CONTROL</span></div>
+            <p id="reason" class="reason"></p><p id="rule" class="rule"></p>
+            <div class="actions"><button type="button" id="repeat">Simulate repeat reading <span aria-hidden="true">↗</span></button><button type="button" id="review" class="secondary">Record CMO review request</button></div>
+            <p class="hint" id="action-hint"></p>
+            <a href="#detection" class="text-link">See how this decision was made <span aria-hidden="true">→</span></a>
+          </section>
+          <section class="card history" aria-labelledby="history-title">
+            <div class="card-head"><div><p class="card-kicker">03 / THE BIGGER PICTURE</p><h2 id="history-title">Your resting history</h2></div><span id="trend" class="trend"></span></div>
+            <div class="chart-legend"><span><i class="legend-line"></i> Heart rate</span><span><i class="legend-band"></i> Personal band</span><span><i class="legend-current"></i> Latest reading</span></div>
+            <div id="chart"></div><p id="chart-caption" class="hint"></p>
+            <details><summary>View individual readings <span aria-hidden="true">+</span></summary><div class="table-scroll"><table><thead><tr><th scope="col">Acquired (UTC)</th><th scope="col">Heart rate</th><th scope="col">Data</th></tr></thead><tbody id="history-table"></tbody></table></div></details>
+          </section>
+          <section class="card log" aria-labelledby="log-title">
+            <div class="card-head"><div><p class="card-kicker">04 / HUMAN REVIEW</p><h2 id="log-title">Local review log</h2></div><span class="local-tag">ON DEVICE</span></div>
+            <p class="hint">Earth unavailable. CMO review onboard.</p>
+            <div class="empty-state" id="empty-log"><span aria-hidden="true">◎</span><strong>No review activity yet</strong><p>Repeat a flagged reading to start a local review.</p></div>
+            <ul id="log" class="review-timeline"></ul><button type="button" id="resolve" class="secondary" hidden>Close simulated review</button>
+            <p class="log-boundary">A request is saved here. It is not sent to a clinician or Earth.</p>
+          </section>
+        </div>
+        <details class="backup-tools"><summary><span>Local records & backup</span><span class="hint">Export, import and storage options <span aria-hidden="true">+</span></span></summary><div class="file-tools"><button type="button" class="secondary" id="export">Export demo records</button><button type="button" class="secondary" id="choose-import">Import demo records</button><input type="file" id="import" accept=".json,application/json" aria-label="Import demo records" hidden><button type="button" class="secondary" id="keep-storage">Request persistent storage</button></div><p class="hint">Offline access needs a completed first load. Clearing browser data may remove the cache and records; export a copy.</p></details>
+      </section>
+
+      <section id="view-detection" class="view" aria-label="Detection laboratory" hidden>
+        <div class="lab-heading"><p class="hint">Explore a synthetic reading. Lab changes are never written to the crew review log.</p><span class="local-tag">DETERMINISTIC · NO AI AT RUNTIME</span></div>
+        <div class="lab-grid">
+          <section class="card lab-controls" aria-labelledby="lab-controls-title"><p class="card-kicker">01 / EXPERIMENT</p><h2 id="lab-controls-title">Change the signal</h2><label class="field-label" for="lab-value">Simulated heart rate <span>bpm</span></label><div class="number-field"><input id="lab-value" type="number" min="1" step="1" inputmode="decimal"><span>bpm</span></div><label class="field-label" for="lab-window">Baseline window</label><select id="lab-window"><option value="7">7 sols</option><option value="14" selected>14 sols</option><option value="28">28 sols</option></select><p class="hint" id="lab-input-note"></p><div class="lab-policy"><span>WATCH <strong>|z| ≥ 2</strong></span><span>ALERT <strong>|z| ≥ 3</strong></span></div><p class="hint">Simulation settings, not clinical thresholds. Changing the window changes which prior readings are included.</p><button id="lab-reset" type="button" class="secondary">Reset experiment</button></section>
+          <section class="card lab-result" aria-labelledby="lab-result-title"><div class="card-head"><div><p class="card-kicker">02 / EXPLAINABLE RESULT</p><h2 id="lab-result-title">Compared with your normal</h2></div><span class="status" id="lab-status"></span></div><div class="lab-score"><strong id="lab-z">—</strong><span>standard deviations<br>from personal baseline</span></div><div class="z-scale" aria-hidden="true"><span class="z-pin" id="lab-pin"></span></div><div class="scale-labels" aria-hidden="true"><span>−4</span><span>−2</span><span>0</span><span>+2</span><span>+4</span></div><p id="lab-explanation" class="reason"></p><dl id="lab-facts" class="facts"></dl><div id="lab-chart"></div><p class="hint">Descriptive comparison only. A deviation does not identify its cause or diagnose a condition.</p></section>
+        </div>
+        <section class="card trace-card" aria-labelledby="trace-title"><div class="card-head"><div><p class="card-kicker">03 / FOLLOW THE REASONING</p><h2 id="trace-title">No skipped steps</h2></div><span class="local-tag">ACTUAL ENGINE TRACE</span></div><ol id="lab-trace" class="trace-list"></ol></section>
+      </section>
+
+      <section id="view-architecture" class="view" aria-label="Architecture and data flow" hidden>
+        <div class="flow-boundary"><div><span class="dot dot-blue"></span><strong>On this device</strong><p>One browser. Local computation. A human chooses the action.</p></div><span class="local-tag">IMPLEMENTED BOUNDARY</span></div>
+        <section class="card flow-card" aria-labelledby="flow-title"><div class="card-head"><div><p class="card-kicker">01 / OBSERVATION TO EXPLANATION</p><h2 id="flow-title">Every signal follows the same path</h2></div></div><p class="hint">Select a step to inspect the current crew scenario. Invalid data stops before a deviation is computed.</p><div id="flow-stages" class="flow-stages" aria-label="Decision stages"></div><div class="flow-inspector"><div><span class="tiny-label" id="flow-stage-number"></span><h3 id="flow-stage-title"></h3><p id="flow-stage-detail"></p></div><pre id="flow-payload" aria-label="Selected stage data"></pre></div></section>
+        <div class="storage-grid"><section class="card" aria-labelledby="flow-human-title"><p class="card-kicker">02 / CHOSEN BY THE CREW</p><h2 id="flow-human-title">A request, with its evidence</h2><p class="hint">A repeat uses the original baseline. The astronaut chooses whether to record a local review request.</p><div class="workflow-track"><span id="flow-repeat">Repeat pending</span><span aria-hidden="true">→</span><span id="flow-review">Review not requested</span></div><a class="text-link" href="#crew">Return to crew overview <span aria-hidden="true">→</span></a></section><section class="card" aria-labelledby="flow-storage-title"><p class="card-kicker">03 / TWO STORES, DIFFERENT JOBS</p><h2 id="flow-storage-title">Available after disconnection</h2><dl class="store-list"><div><dt>App cache <span>Cache Storage</span></dt><dd>Retains local files after the first successful load.</dd></div><div><dt>Review log <span>IndexedDB</span></dt><dd><strong id="flow-event-count">0</strong> demo events on this device. Export a separate backup.</dd></div></dl></section></div>
+        <div class="future-boundary"><span class="tiny-label">OUTSIDE THIS PROTOTYPE</span><div><span>Physical sensor adapters</span><span>CMO inbox & habitat network</span><span>Earth delivery / DTN</span></div><p>No connection is implemented to these systems. The blackout is a simulated mission scenario.</p></div>
+      </section>
+      <footer class="footer"><div class="readiness"><span id="offline" role="status">Preparing offline access</span><span id="storage" role="status">Opening local storage</span></div><span>ASTRAVITAL <span class="footer-plus">✦</span> PEOPLE FIRST. EARTH OPTIONAL.</span></footer>
+      <div id="announcement" class="sr-only" role="status"></div>
+    </main>
+  </div>
+</body>
+</html>

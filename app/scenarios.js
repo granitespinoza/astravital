@@ -26,16 +26,26 @@ export function reading(id, value, observedAt, quality = 'ok') {
     observedAt, source:'Demo heart rate sensor', quality, simulated:true};
 }
 
-/** @param {string} scenario */
-export function sample(scenario) {
+/** @param {string} scenario @param {number} [historyLength] */
+export function sample(scenario, historyLength = 14) {
   const random = seeded(142);
   const now = ORIGIN + 7 * 60000;
   const at = scenario === 'stale' ? ORIGIN - 27 * HOUR : ORIGIN;
-  const history = Array.from({length:scenario === 'short' ? 3 : 14}, (_, index) => {
-    const day = index - (scenario === 'short' ? 3 : 14);
+  const length = scenario === 'short' ? 3 : 14;
+  const history = Array.from({length}, (_, index) => {
+    const day = index - length;
     const drift = scenario === 'drift' ? Math.max(0, day + 6) * 1.5 : 0;
     return reading('history-' + day, Math.round(57 + random() * 8 + drift), at + day * SOL);
   });
+  // Extend the same 14-sol crew fixture for the lab. Existing recent readings
+  // remain identical when a 28-sol reference window is explored.
+  if (scenario !== 'short' && historyLength === 28) {
+    const older = Array.from({length:14}, (_, index) => {
+      const day = index - 28;
+      return reading('history-' + day, Math.round(57 + random() * 8), at + day * SOL);
+    });
+    history.unshift(...older);
+  }
   const current = scenario === 'missing' ? null :
     scenario === 'fault' ? reading('current', null, at, 'device-fault') :
     scenario === 'suspect' ? reading('current', 61, at, 'suspect') :

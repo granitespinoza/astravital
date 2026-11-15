@@ -1,0 +1,37 @@
+[
+  {
+    "file": "FiraSans-Bold.woff2",
+    "source": "https://raw.githubusercontent.com/mozilla/Fira/master/woff2/FiraSans-Bold.woff2",
+    "bytes": 140452,
+    "sha256": "799cc549b16fe25059ffa78c83cc8264f2ce87332c5b9426ff7389a86d2f980f",
+    "bundled_file": "app/fira-sans-bold.woff2"
+  },
+  {
+    "file": "Overpass-Regular.woff2",
+    "source": "https://raw.githubusercontent.com/RedHatOfficial/Overpass/master/fonts/webfonts/Overpass-Regular.woff2",
+    "bytes": 77504,
+    "sha256": "6f67ab17872ad1359826c58feb2fbf2d8dfd65fe7bb6d3c65e7c1a1e6c97b92a",
+    "bundled_file": "app/overpass-regular.woff2"
+  },
+  {
+    "file": "Overpass-Bold.woff2",
+    "source": "https://raw.githubusercontent.com/RedHatOfficial/Overpass/master/fonts/webfonts/Overpass-Bold.woff2",
+    "bytes": 80632,
+    "sha256": "81366cba3d31ca34a30d7a03213637fc0d9e645f8b17685fd667f1be958c18bd",
+    "bundled_file": "app/overpass-bold.woff2"
+  },
+  {
+    "file": "FiraSans-OFL.txt",
+    "source": "https://raw.githubusercontent.com/mozilla/Fira/master/LICENSE",
+    "bytes": 4479,
+    "sha256": "99bfb7c1e845b79d1031fcf37e678178eb4a8c7cc74a3f218ddf7223083a6fcd",
+    "bundled_file": "licenses/FiraSans-OFL.txt"
+  },
+  {
+    "file": "Overpass-OFL.txt",
+    "source": "https://raw.githubusercontent.com/RedHatOfficial/Overpass/master/OFL.txt",
+    "bytes": 4392,
+    "sha256": "86e5ff25c701ec446d20b1a85b02ee6d36de8503a7288a4c948f5459809af1f0",
+    "bundled_file": "licenses/Overpass-OFL.txt"
+  }
+]

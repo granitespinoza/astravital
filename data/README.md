@@ -24,3 +24,11 @@ The repeat measurement advances the clock by seven minutes and uses a fixed foll
 [Simulation] The reproducible engine tests start from the same seed with 28 warm-up sols and 60 evaluated sols. They compare 7-, 14-, and 28-sol windows with a stable series, a ten-sol upward drift (+1.5 bpm per sol), and a one-sol spike (+20 bpm). The event begins at evaluation sol 21. Replay holds the first flagged baseline through each injected event. [Method and observed results](../docs/RESULTADOS.md)
 
 [Hypothesis] Sampling frequency, variability, drift sizes and thresholds were chosen to exercise the prototype. The generator does not represent data from astronauts, clinical physiology, actual sensor error distributions, or the effect of the space environment. Injected events provide a reference for testing the code.
+
+## Detection laboratory extension
+
+[Simulation] `sample(scenario, 28)` retains the exact 14 recent readings generated for the crew overview, then prepends 14 older readings using the subsequent draws of the same seed-142 stream. All windows therefore compare subsets of the same history. The 14-sol lab decision matches the overview before a value override. The insufficient-history fixture remains at three observations. Lab value edits are synthetic and transient; they are never stored in the review log. The original 60-sol evaluation replay and its measured metrics remain unchanged.
+
+## Shared crew display
+
+Visor and console share `workflow.js`, seed-142 fixtures, the original baseline and version-1 events. Ideal capture assumptions do not turn synthetic data into NASA measurements. The body is context only; no bone measurements are generated. [Audio metadata](hud-audio-transcripts.json) describes synthetic neutral output; no raw user audio is collected.

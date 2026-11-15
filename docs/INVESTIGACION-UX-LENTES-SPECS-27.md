@@ -2,6 +2,8 @@
 
 Investigación de experiencia de usuario · 14 de noviembre de 2026 · Hábitat simulado
 
+> Importada desde `113f0c8` el 2026-11-15. La decisión posterior y sus límites están en [DECISION-VISOR.md](DECISION-VISOR.md). Las propuestas no equivalen a integración física comprobada.
+
 ## Recomendación
 
 **[HIPÓTESIS]** Empezar con una Lens activa que muestre una tarjeta breve, reproduzca clips de voz empaquetados y permita completar el recorrido con controles visuales. Demostrar `WATCH → Check again → ALERT → Confirm save` con Tierra desconectada. La primera prueba física debe comprobar legibilidad de un vistazo, inteligibilidad del audio y persistencia al cerrar y reabrir la Lens. Incorporar reconocimiento de voz al recorrido principal cuando funcione sin internet en SPECS 27.

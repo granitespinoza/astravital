@@ -2,8 +2,12 @@
 name: spaceapps-demo
 description: Builds the Space Apps 2026 demo for ASTRAVITAL - a 30-second-or-less video script with English subtitles or a 7-slide-max deck - following the official structure and showing offline operation on the Moon or Mars. Use when writing the pitch, video script, storyboard, slide outline or Canva deck.
 ---
-
 # Demo de Space Apps 2026 (puntúa en Presentation)
+
+## Estado real y alcance de esta skill (2026-11-14)
+
+Mostrar solo lo implementado: FC en reposo, explicación, repetición simulada y solicitud registrada localmente sin red. No mostrar entrega del outbox como funcional: no existe transporte. Los límites de 30 s / 7 diapositivas son restricciones de trabajo conservadas; reconfirmar guía oficial y condiciones en `docs/ENTREGA.md` antes de enviar.
+
 
 Límites estrictos: **vídeo de 30 s o menos** o **deck de 7 diapositivas como máximo**, contando portada e introducción. Si se pasa del límite, el proyecto queda fuera de la evaluación global. Inglés obligatorio: un vídeo en otro idioma necesita subtítulos en inglés.
 
@@ -19,7 +23,7 @@ Límites estrictos: **vídeo de 30 s o menos** o **deck de 7 diapositivas como m
 | 0:02 | Reto elegido e inspiración | título del reto |
 | 0:05 | Nombre del proyecto y eslogan | logo propio (nunca el de la NASA) |
 | 0:10 | Cómo funciona y qué datos de la NASA lo hacen posible | panel, perfil Mars, "Earth link: blackout", aparece una alerta explicada |
-| 0:20–0:30 | Mirada al futuro | el outbox se entrega al volver el enlace; visión |
+| 0:20–0:30 | Mirada al futuro | recarga sin red con solicitud conservada; próximos pasos etiquetados como visión |
 
 Narración en inglés de unas 70–75 palabras. Cronométrala leyéndola en voz alta.
 
@@ -28,7 +32,7 @@ Narración en inglés de unas 70–75 palabras. Cronométrala leyéndola en voz 
 1. **Title:** proyecto y eslogan, nombre del equipo, miembros y reto.
 2. **Problem:** los 5 peligros del HRP; en Marte la ayuda médica de la Tierra tarda minutos o desaparece durante semanas (fuente de la NASA).
 3. **Solution:** ASTRAVITAL en una frase y una captura del producto.
-4. **How it works:** datos → línea base personal → Z-Score → prioridad → explicación → acción, todo dentro del hábitat; enlace con la Tierra store-and-forward.
+4. **How it works:** datos simulados → calidad → línea base personal → Z-Score → explicación → acción → registro local; transporte Tierra como futuro.
 5. **User experience:** el escenario de demo paso a paso, desde el punto de vista del tripulante.
 6. **NASA data & validity:** recursos de la NASA y la CSA que guían el diseño, métricas de falsas alarmas y qué está simulado.
 7. **Future:** datos reales, más indicadores, integración DTN y gemelo digital marcado como visión.

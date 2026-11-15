@@ -1,0 +1,34 @@
+{
+  "name": "astravital",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Glasses-first astronaut health prototype with local voice, seeded data and traceable decisions",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "demo": "node scripts/start.mjs",
+    "start": "node scripts/start.mjs",
+    "seed": "node scripts/seed.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "setup:voice": "node scripts/setup-voice.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "verify": "npm run build && node --test",
+    "test:browser": "node tests/browser.mjs",
+    "test:functional": "node tests/functional-browser.mjs",
+    "predemo": "npm run build"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "3.8.1",
+    "kokoro-js": "1.2.1",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  },
+  "overrides": {
+    "sharp": "0.35.5"
+  }
+}

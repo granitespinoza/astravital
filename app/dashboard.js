@@ -1,11 +1,14 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
-import { decide, policy, RULE } from './engine.js';
-import { ORIGIN, reading, sample, scenarios } from './scenarios.js';
+import { policy, RULE, traceDecision } from './engine.js';
+import { evaluateScenario, expectedEvent, sameRecord } from './workflow.js';
+import { ORIGIN, sample, scenarios } from './scenarios.js';
 import { openStorage, readEvents, appendEvents } from './storage.js';
 import { drawHistory } from './chart.js';
+import { createExplorer } from './explorer.js';
 
 const byId = id => document.getElementById(id);
 const settings = policy();
+const updateExplorer = createExplorer();
 const scenarioPicker = byId('scenario');
 const repeatButton = byId('repeat');
 const reviewButton = byId('review');
@@ -39,44 +42,6 @@ function when(timestamp) {
   return new Date(timestamp).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
 }
 
-function evaluated(scenario) {
-  const { now, history, current } = sample(scenario);
-  const first = decide(current, history, now, settings);
-  const value = scenario === 'deviation' ? 73 : 74;
-  const repeated = reading('repeat-' + scenario, value, ORIGIN + 7 * minutes);
-  const followUp = decide(repeated, history, now, settings, first.baseline);
-  const canRepeat = first.level === 'watch' || first.level === 'alert';
-  return {history, current, first, repeated, followUp, canRepeat};
-}
-
-function expectedEvent(scenario, kind) {
-  const data = evaluated(scenario);
-  if (!data.canRepeat) throw new Error('This scenario cannot open a review.');
-  const base = {id:scenario + ':' + kind, scenario, kind, simulated:true};
-  if (kind === 'repeat') return {...base, reading:data.repeated};
-  if (data.followUp.level !== 'alert' && data.followUp.level !== 'watch') {
-    throw new Error('The repeat did not confirm a deviation.');
-  }
-  if (kind === 'request') {
-    return {
-      ...base, crewId:data.repeated.crewId, recordedAt:ORIGIN + 8 * minutes,
-      earthLink:'unavailable', readingIds:[data.current.id, data.repeated.id],
-      decision:data.followUp, thresholds:{watch:settings.watch, alert:settings.alert},
-    };
-  }
-  if (kind === 'close') return {...base, recordedAt:ORIGIN + 9 * minutes};
-  throw new Error('Unknown record type.');
-}
-
-function sameRecord(left, right) {
-  if (left === right) return true;
-  if (!left || !right || typeof left !== 'object' || typeof right !== 'object' ||
-      Array.isArray(left) !== Array.isArray(right)) return false;
-  const keys = Object.keys(right);
-  return Object.keys(left).length === keys.length &&
-    keys.every(key => Object.hasOwn(left, key) && sameRecord(left[key], right[key]));
-}
-
 function validateImport(bundle) {
   if (bundle?.format !== 'astravital-demo' || bundle.version !== 1 ||
       !Array.isArray(bundle.events) || bundle.events.length > Object.keys(scenarios).length * 3) {
@@ -88,7 +53,7 @@ function validateImport(bundle) {
     if (!Object.hasOwn(scenarios, event?.scenario) || !['repeat', 'request', 'close'].includes(event?.kind)) {
       throw new Error('The file contains an invalid demo record.');
     }
-    const expected = expectedEvent(event.scenario, event.kind);
+    const expected = expectedEvent(event.scenario, event.kind, settings);
     if (!sameRecord(event, expected)) throw new Error('The file contains an altered demo record.');
     imported.set(expected.id, expected);
   }
@@ -118,7 +83,7 @@ function setFacts(container, facts) {
 
 function render() {
   const scenario = scenarioPicker.value;
-  const {history, current, first, repeated, followUp, canRepeat} = evaluated(scenario);
+  const {history, current, first, repeated, followUp, canRepeat} = evaluateScenario(scenario, settings);
   const performed = events.some(event => event.id === scenario + ':repeat');
   const request = events.find(event => event.id === scenario + ':request');
   const closed = events.find(event => event.id === scenario + ':close');
@@ -190,6 +155,10 @@ function render() {
   byId('empty-log').hidden = performed;
   exportButton.disabled = busy || !database;
   chooseImport.disabled = busy || !database;
+  const {now} = sample(scenario);
+  updateExplorer({scenario, measurement, decision, performed, request, closed,
+    eventCount:events.length,
+    trace:traceDecision(measurement, history, now, settings, performed ? first.baseline : null)});
 }
 
 const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('astravital-events') : null;
@@ -215,7 +184,7 @@ async function save(getRecords, message) {
 
 function record(kind, message) {
   const scenario = scenarioPicker.value;
-  void save(() => [expectedEvent(scenario, kind)], message);
+  void save(() => [expectedEvent(scenario, kind, settings)], message);
 }
 
 repeatButton.addEventListener('click', () => record('repeat', 'Repeat reading saved'));
