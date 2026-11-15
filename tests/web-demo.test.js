@@ -28,7 +28,7 @@ test('the same conversation gets identical answers in the web demo and on the se
   try {
     let serverSession;
     let webSession;
-    const script = ['Hello Astra', 'How is my heart?', 'Why?', 'Check again', 'Request review', 'Confirm save', 'And my bones?', 'Can you diagnose osteoporosis?', 'Call the doctors on Earth', 'I feel dizzy'];
+    const script = ['Hello Astra', 'How is my pulse?', 'How is my heart?', 'Why?', 'Check again', 'Request review', 'Confirm save', 'And my bones?', 'Can you diagnose osteoporosis?', 'Call the doctors on Earth', 'I feel dizzy'];
     for (const text of script) {
       const server = respond(db, {text, sessionId: serverSession});
       const web = await post(text, webSession);

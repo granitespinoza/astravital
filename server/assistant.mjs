@@ -45,7 +45,7 @@ export function respond(db, {text = '', sessionId, scenario, boneScenario} = {})
   const context = db.getSession(id) ?? {domain:'cardiovascular',scenarios:{cardiovascular:'deviation',bone:'change'},pending:null,muted:false};
   context.scenarios ??= {cardiovascular:'deviation',bone:'change'};
   const message = fold(text);
-  const selected = /\b(huesos?|ose[oa]s?|bones?|dxa|densidad|cadera|hip)\b/.test(message) ? 'bone' : /\b(corazon|cardio(?:vascular)?|pulso|heart|cardiac)\b/.test(message) ? 'cardiovascular' : context.domain;
+  const selected = /\b(huesos?|ose[oa]s?|bones?|dxa|densidad|cadera|hip)\b/.test(message) ? 'bone' : /\b(corazon|cardio(?:vascular)?|pulso|pulse|bpm|heart|cardiac)\b/.test(message) ? 'cardiovascular' : context.domain;
   if (selected !== context.domain) { context.domain = selected; context.pending = null; }
   if (boneScenario !== undefined) { db.getState('bone',boneScenario); if (context.scenarios.bone !== boneScenario) context.pending=null;context.scenarios.bone=boneScenario; }
   if (scenario !== undefined) { db.getState(context.domain,scenario);if(context.scenarios[context.domain]!==scenario)context.pending=null;context.scenarios[context.domain]=scenario; }
@@ -93,6 +93,6 @@ export function respond(db, {text = '', sessionId, scenario, boneScenario} = {})
   if (/\b(por que|porque|explica\w*|why|explain|razon|causa|show medical details|medical details|detalles medicos)\b/.test(message)) return finish('explain',describe(state,'explain'));
   if (/\b(compara\w*|compare|cambio|diferencia|antes|tendencia)\b/.test(message)) return finish('compare',describe(state,'compare'));
   if (/\b(actual|ahora|current|latest|ultimo|valor)\b/.test(message)) return finish('status',describe(state,'current'));
-  if (/\b(estado|status|como estoy|how am i|huesos?|bones?|corazon|heart)\b/.test(message) ) return finish('status',describe(state));
+  if (/\b(estado|status|como estoy|how am i|huesos?|bones?|corazon|heart|pulse|pulso)\b/.test(message) ) return finish('status',describe(state));
   return finish('clarify',"I can check heart or bone status, explain a change, compare measurements, or prepare a review. Saving needs your separate confirmation.");
 }
