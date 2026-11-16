@@ -69,7 +69,7 @@ Open **Earth doctor view** from the glasses page to inspect a simulated flight-s
 7. Choose **Message your medical team** and send Astra's draft.
 8. Select **Earth doctor view ↗**: the flight surgeon's dashboard opens on the same repeated check, with a patient card, the inbox, evidence and the experimental trend forecast. Press **Reply to astronaut**, then return to the glasses: the reply arrives in the lens as a notification and Astra reads it aloud.
 
-The page also has a **How to try it (30 s)** guide, and a **Motion** switch in the header: if your system asks to reduce motion, the intro is simplified; switch to *full* to see the lens sway, the glint cross the glass and the longer entry into the lens.
+The page also has a **How to try it (30 s)** guide, and a **Full motion** switch in the header, on by default: the 3D glasses move on their own and tilt toward your cursor, the glass in the wearer view drifts with a glint, and the entry into the lens lasts 3.8 s. Switch it off to simplify the animations; your choice is remembered.
 
 ---
 
