@@ -137,3 +137,17 @@ h1{font-size:clamp(2rem,4.2vw,4.4rem)}
 @media(max-width:700px){.motion-toggle{order:1;margin-left:auto}#api-status{order:2;flex:1 1 100%;margin-left:0}.prototype{order:3}}
 .tour p{margin:.2rem 0 .1rem 1.3rem;color:#a9bbb7;font-size:.8rem}
 .web-demo-note{padding:.5rem 1rem;margin-bottom:10px}
+
+/* ===== AI assistance: Anthropic Claude. Body context: no text on top of other text. ===== */
+/* In this view the two status chips stack in a narrow column; the two-column grid of the wearer view must not apply here. */
+.visual[data-mode=body] .status-pair{display:flex;flex-direction:column;gap:10px;max-width:none}
+@media(min-width:801px){
+  .visual[data-mode=body] .visor-status{left:76px;top:132px;width:150px}
+  .visual[data-mode=body] .status-chip{width:150px}
+  .body-label{top:132px;right:76px}
+  .visual[data-mode=body] .visor-caption{left:76px;right:76px;bottom:74px}
+  .body-art .anatomy-figure{inset:116px 0 auto;height:calc(100% - 310px);margin:0 auto}
+}
+/* Without 3D, the notice sits in the bottom band instead of on top of the HUD. */
+.scene-fallback{position:absolute;inset:auto 40px 72px;height:auto;padding:0;display:block;text-align:center;font-size:.75rem;color:#aebebf}
+.visual[data-mode=body] .scene-fallback{display:none}
