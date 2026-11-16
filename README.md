@@ -62,11 +62,14 @@ Open **Earth doctor view** from the glasses page to inspect a simulated flight-s
 
 1. Open the [live web demo](https://granitespinoza.github.io/astravital/), or `http://127.0.0.1:4173/` after [starting it locally](#run-it-locally). Tap the glasses or **Start experience**: the camera moves through the lens into the wearer's view.
 2. The visor shows **Heart: Check again** and **Bones: Worth a review**.
-3. Ask *"Astra, how is my heart?"* (voice in the local app, or type in either version). Astra explains that the reading differs from the usual resting pattern.
+3. Press **Talk to Astra** and say *“OK Astra, how is my heart?”* (Astra only acts after hearing its name; in the web demo this uses your browser's speech recognition), or type it. Astra explains that the reading differs from the usual resting pattern.
 4. Choose **Check again**. The repeat keeps the original reference, so a real change cannot be "normalized away"; the heart chip becomes **Review change**.
 5. Choose **Prepare review**, then **Confirm save**. The request is saved locally; Astra states that nothing was sent to Earth.
 6. Choose **Tell me why** or **Medical details** to see the numbers behind the summary: value, personal reference, z-score, data quality and source records.
-7. Select **Earth doctor view ↗**: the flight surgeon's dashboard opens on the same repeated check, with the inbox, evidence and the experimental trend forecast.
+7. Choose **Message your medical team** and send Astra's draft.
+8. Select **Earth doctor view ↗**: the flight surgeon's dashboard opens on the same repeated check, with a patient card, the inbox, evidence and the experimental trend forecast. Press **Reply to astronaut**, then return to the glasses: the reply arrives in the lens as a notification and Astra reads it aloud.
+
+The page also has a **How to try it (30 s)** guide, and a **Motion** switch in the header: if your system asks to reduce motion, the intro is simplified; switch to *full* to see the lens sway, the glint cross the glass and the longer entry into the lens.
 
 ---
 
@@ -181,7 +184,7 @@ For the three-level mission rehearsal, see [Mission LAN demonstration](docs/MISS
 ### Verify
 
 ```sh
-npm run verify          # build + 71 automated tests
+npm run verify          # build + 75 automated tests
 npm run test:e2e        # web demo in headless Chrome (also run against the live site after each deploy;
                         # E2E_DATE=2027-01-26 repeats it with a shifted clock to prove the demo does not expire)
 npm run test:functional # full local app: real server and SQLite, glasses → crew phone → CMO → Earth doctor
@@ -189,7 +192,7 @@ npm run test:browser    # earlier glasses simulator and review console
 node scripts/forecast-eval.mjs   # time-ordered backtest of the experimental forecast
 ```
 
-Latest local run (2026-11-15, macOS, Node 22.23.2): **71 tests, 69 passed, 0 failed, 2 skipped**; web demo end-to-end **34/34** (including 768 px and 390 px layouts and Reset demo), also passing with the clock set to 2026-12-03, 2026-12-17, 2027-01-26 and 2027-03-31; full local app end-to-end **17/17**; earlier browser check passed. CI repeats the build, the tests and both end-to-end runs on every push. The two skipped tests are opt-in integration runs of the real local voice models; run on the same day with `RUN_TTS_INTEGRATION=1` (Kokoro synthesis with a network guard) and `RUN_VOICE_INTEGRATION=1` (speech recognition on synthetic speech), **both passed** (4/4 and 6/6). All results and limits: [docs/RESULTADOS.md](docs/RESULTADOS.md).
+Latest local run (2026-11-15, macOS, Node 22.23.2): **75 tests, 73 passed, 0 failed, 2 skipped**; web demo end-to-end **84/84** (layouts at 768 px and 390 px, a readability audit with a 12 px text floor and WCAG AA contrast, the motion switch, Reset demo), also passing with the clock set to 2026-12-03, 2026-12-17, 2027-01-26 and 2027-03-31; full local app end-to-end **17/17**; earlier browser check passed. CI repeats the build, the tests and both end-to-end runs on every push. The two skipped tests are opt-in integration runs of the real local voice models; run on the same day with `RUN_TTS_INTEGRATION=1` (Kokoro synthesis with a network guard) and `RUN_VOICE_INTEGRATION=1` (speech recognition on synthetic speech), **both passed** (4/4 and 6/6). All results and limits: [docs/RESULTADOS.md](docs/RESULTADOS.md).
 
 ---
 

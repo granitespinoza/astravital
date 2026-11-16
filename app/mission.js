@@ -180,7 +180,7 @@ async function refresh() {
       }
     }
     if (view === 'ground' && !ground) {
-      groundModule ??= import('./ground-view.js?v=19');
+      groundModule ??= import('./ground-view.js?v=20');
       const {createGroundView} = await groundModule;
       if (view !== active) return;
       medicalThread??=createCaseThread(byId('ground-conversation'),{request:messageRequest,localOnly:Boolean(demo&&!localService)});

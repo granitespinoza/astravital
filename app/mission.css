@@ -13,7 +13,7 @@
 }
 .mission-header { flex-wrap: wrap; gap: .6rem 1.4rem; }
 .mission-header a { color: var(--cyan); margin-left: auto; font-size: .85rem; }
-.mission-simulated { color: var(--muted); font-size: .68rem; }
+.mission-simulated { color: var(--muted); font-size:.75rem; }
 .mission { max-width: 1100px; padding: 2rem 1rem 3rem; }
 .mission[data-view="ground"] { max-width: 1440px; padding-inline: clamp(1rem,4vw,3.5rem); }
 .mission h1 { font-size: clamp(2.2rem, 4vw, 3.65rem); line-height: 1; margin: .5rem 0 .65rem; }
@@ -43,7 +43,7 @@
 }
 .ground-toolbar { margin-block: 1rem; }
 .ground-toolbar label { margin: 0; color: var(--subtle); }
-.ground-toolbar .pill { margin-left: auto; color: var(--cyan); font-size: .68rem; }
+.ground-toolbar .pill { margin-left: auto; color: var(--cyan); font-size:.75rem; }
 #ground-shared-case { color: var(--cyan); font-size: .9rem; }
 .ground-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 1rem; }
 .ground-grid > .mission-panel { margin: 0; }
@@ -100,7 +100,7 @@
 .ground-detail svg { display: block; width: 100%; max-height: 175px; }
 .ground-detail .chart-band { fill: color-mix(in srgb,var(--cyan) 17%,transparent); }
 .ground-detail .chart-grid { stroke: var(--line); }
-.ground-detail .chart-label { fill: var(--subtle); font-size: 11px; }
+.ground-detail .chart-label { fill: var(--subtle); font-size:12px; }
 .ground-detail .chart-line { fill: none; stroke: var(--cyan); stroke-width: 2; }
 .ground-detail .chart-point { fill: var(--cyan); }
 .ground-detail .chart-current { fill: var(--lime); }
@@ -127,7 +127,7 @@
 #ground-scene[data-view="heart"] .anatomy-closeup[data-layer="heart"],
 #ground-scene[data-view="bone"] .anatomy-closeup[data-layer="bone"] { opacity: 1; transform: scale(var(--closeup-scale, 1)); }
 #ground-scene:not([data-view="body"]) .anatomy-figure { opacity: 0; pointer-events: none; }
-.anatomy-status { position: absolute; left: .7rem; top: .6rem; margin: 0; z-index: 2; padding: .25rem .7rem; font-size: .74rem; font-weight: 700;
+.anatomy-status { position: absolute; left: .7rem; top: .6rem; margin: 0; z-index: 2; padding: .25rem .7rem; font-size:.75rem; font-weight: 700;
   color: var(--state, var(--cyan)); background: #05090ad9; border: 1px solid var(--border); border-radius: 999px; }
 .anatomy-stage .ai-badge { position: absolute; right: .7rem; bottom: .55rem; z-index: 2; }
 /* AI assistance: Anthropic Claude. Space by priority: patient card + reply first, bigger type, important content first on small screens. */
@@ -147,3 +147,17 @@
   .ground-grid > .ground-detail { order: -1; }
   #ground-scene { min-height: 300px; }
 }
+/* AI assistance: Anthropic Claude. Fixes from the independent review: primary action near the top on small screens, motion switch alignment. */
+@media (max-width: 900px) {
+  #ground-case-card { grid-template-columns: minmax(0,1fr); }
+  #ground-case-card .patient-main { display: contents; }
+  #ground-case-card .case-identity { order: 0; }
+  #ground-case-card .patient-problem { order: 1; margin: 0; }
+  #ground-case-card .case-next { order: 2; margin: 0; }
+  #ground-case-card .patient-cta { order: 3; }
+  #ground-case-card .case-overview-grid { order: 4; grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .reply-cta { width: 100%; }
+}
+.mission-header .motion-toggle { margin-left: auto; }
+.mission-header a { margin-left: .8rem; }
+@media (max-width: 760px) { .mission-header a { margin-left: 0; } }

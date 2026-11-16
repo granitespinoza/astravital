@@ -115,6 +115,41 @@ try {
   const js = async expression => { const r = await page('Runtime.evaluate', {expression, returnByValue: true, awaitPromise: true}); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const check = (name, ok, detail = '') => { console.log(`${ok ? 'ok' : 'FAIL'} - ${name}${detail ? ' — ' + detail : ''}`); if (!ok) failures.push(name); };
   const astra = () => js(`document.querySelector('#conversation .bubble span')?.textContent ?? ''`);
+  // Readability audit: every visible piece of text must be at least 12 px and meet WCAG AA contrast (4.5:1)
+  // against its effective background (solid backgrounds only; a close approximation, not a certification).
+  const textAudit = () => js(`(() => {
+    const parse = c => { const m = c.match(/rgba?\\(([^)]+)\\)/); if (!m) return null; const p = m[1].split(',').map(x => parseFloat(x)); return {r:p[0], g:p[1], b:p[2], a:p.length > 3 ? p[3] : 1}; };
+    const over = (top, bot) => ({r: top.r * top.a + bot.r * (1 - top.a), g: top.g * top.a + bot.g * (1 - top.a), b: top.b * top.a + bot.b * (1 - top.a), a: 1});
+    const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    const lum = c => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+    const bgOf = el => { const stack = []; for (let n = el; n; n = n.parentElement) { const c = parse(getComputedStyle(n).backgroundColor); if (c && c.a > 0) stack.push(c); } let bg = {r:3, g:4, b:5, a:1}; for (const c of stack.reverse()) bg = over(c, bg); return bg; };
+    const out = {small: [], low: [], n: 0};
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let t; (t = walker.nextNode());) {
+      const text = t.textContent.trim(); if (!text) continue;
+      const el = t.parentElement; if (!el || el.closest('script,style,noscript,option,.sr-only,pre,[aria-hidden=true]')) continue;
+      let hidden = false; for (let n = el; n; n = n.parentElement) { const st = getComputedStyle(n); if (st.display === 'none' || st.visibility === 'hidden' || parseFloat(st.opacity) === 0) { hidden = true; break; } }
+      const rect = el.getBoundingClientRect(); if (hidden || !rect.width || !rect.height) continue;
+      out.n++;
+      const cs = getComputedStyle(el), size = parseFloat(cs.fontSize);
+      const label = (el.id ? '#' + el.id : el.className ? '.' + String(el.className).split(' ')[0] : el.tagName.toLowerCase()) + ' "' + text.slice(0, 26) + '"';
+      if (size < 11.95) out.small.push(label + ' ' + size.toFixed(1) + 'px');
+      const fg = parse(cs.color); if (fg) { const bg = bgOf(el), f = over(fg, bg), a = lum(f), b = lum(bg), ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); if (ratio < 4.5) out.low.push(label + ' ' + ratio.toFixed(1) + ':1'); }
+    }
+    return out;
+  })()`);
+  const checkReadable = async where => {
+    const audit = await textAudit();
+    check(`${where}: no text smaller than 12 px`, audit.small.length === 0, audit.small.slice(0, 4).join(' | ') || `${audit.n} text blocks`);
+    check(`${where}: text meets WCAG AA contrast (4.5:1)`, audit.low.length === 0, audit.low.slice(0, 4).join(' | ') || `${audit.n} text blocks`);
+  };
+  // Optional screenshots for design review: SHOT_DIR=/some/folder node tests/e2e-web.mjs
+  const snap = async name => {
+    if (!process.env.SHOT_DIR) return;
+    await delay(1000);
+    const {data} = await page('Page.captureScreenshot', {format:'png', fromSurface:true, captureBeyondViewport:true});
+    await writeFile(join(process.env.SHOT_DIR, name + '.png'), Buffer.from(data, 'base64'));
+  };
 
   await page('Page.navigate', {url});
   await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'web demo status');
@@ -128,6 +163,19 @@ try {
   await js(`document.getElementById('enter-lenses').click()`);
   await untilPage(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens transition', 8000);
   check('lens transition reaches the wearer view', true);
+  check('the header says what ASTRAVITAL is', await js(`document.querySelector('header .prototype').textContent.includes('health monitoring') &&
+    document.querySelector('.hero-about .about').textContent.includes('ASTRAVITAL is autonomous, adaptive health-monitoring software')`));
+  check('the hero shows who uses it: Astra, the onboard medical officer and the Earth doctor', await js(`document.querySelectorAll('.roles li').length === 3 &&
+    document.querySelector('.roles').textContent.includes('Onboard medical officer') && document.querySelector('.roles').textContent.includes('Earth doctor')`));
+  check('Astra greets the astronaut by name', await js(`document.getElementById('astra-title').textContent.includes('Alex')`));
+  const sway1 = await js(`getComputedStyle(document.querySelector('.optics')).translate`);
+  await delay(1500);
+  const sway2 = await js(`getComputedStyle(document.querySelector('.optics')).translate`);
+  check('the lens moves sideways (its position changes over time) and a glint crosses the glass', sway1 !== sway2 && await js(`document.documentElement.dataset.motion === 'full' &&
+    document.querySelector('.optics').getClientRects().length > 0 &&
+    getComputedStyle(document.querySelector('.optics'), '::before').animationName.includes('optics-glint')`), `${sway1} → ${sway2}`);
+  await checkReadable('Glasses page (desktop)');
+  await snap('glasses-desktop');
   if (process.env.FOCUS_SCREENSHOT_PATH) {
     await delay(1500);
     const {data} = await page('Page.captureScreenshot', {format:'png', fromSurface:true});
@@ -257,6 +305,10 @@ try {
   await page('Page.reload');
   await untilPage(() => js(`document.getElementById('ground-timeline')?.innerText.includes('Training note from E2E')`), 'Ground note after reload');
   check('Ground note survives a reload', true);
+  await checkReadable('Earth doctor view (desktop)');
+  check('the Earth doctor view has the same motion switch', await js(`document.getElementById('motion-toggle')?.getAttribute('role') === 'switch' &&
+    document.getElementById('motion-toggle').textContent.startsWith('Full motion')`));
+  await snap('ground-desktop');
   check('Ground starts with a patient card: risk level, main problem and Reply to astronaut', await js(`
     document.querySelector('#ground-case-card .patient-risk')?.textContent === 'High priority' &&
     document.querySelector('#ground-case-card .patient-problem')?.textContent.includes('73 bpm') &&
@@ -317,6 +369,8 @@ try {
     await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: true});
     check(`Ground fits a ${width} px viewport`, await js(`window.innerWidth === ${width} &&
       document.documentElement.scrollWidth <= window.innerWidth + 1`));
+    await checkReadable(`Earth doctor view (${width} px)`);
+    await snap(`ground-${width}`);
     check(`Ground anatomy fits its panel at ${width} px`, await js(`(() => {
       const stage = document.getElementById('ground-scene').getBoundingClientRect();
       const figure = document.querySelector('#ground-scene .anatomy-figure').getBoundingClientRect();
@@ -353,12 +407,29 @@ try {
   const offlineOk = await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO') && (document.querySelector('#crew-overview h2')?.textContent ?? '').includes('Alex Morgan')`), 'offline reload', 20000).then(() => true, () => false);
   await page('Network.emulateNetworkConditions', {offline:false, latency:0, downloadThroughput:-1, uploadThroughput:-1});
   check('after the first visit the demo reloads and runs with no internet', offlineOk);
+  // Motion preference: follows the system "reduce motion" setting, can be switched by the person and is remembered.
+  await js(`localStorage.removeItem('astravital-motion'); true`);
+  await page('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]});
+  await page('Page.reload');
+  await untilPage(() => js(`document.documentElement.dataset.motion === 'reduced' && document.getElementById('motion-toggle')?.textContent.includes('system setting')`), 'reduced motion from the system');
+  check('with “reduce motion” on in the system, animations are simplified and the toggle says so', await js(`getComputedStyle(document.querySelector('.optics')).animationName === 'none'`));
+  await js(`document.getElementById('motion-toggle').click(); true`);
+  check('the person can turn full motion on, and the lens moves', await js(`document.documentElement.dataset.motion === 'full' &&
+    getComputedStyle(document.querySelector('.optics')).animationName.includes('optics-sway') && document.getElementById('motion-toggle').textContent === 'Full motion: on' && document.getElementById('motion-toggle').getAttribute('aria-checked') === 'true'`));
+  await page('Page.reload');
+  await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'page after the motion choice');
+  check('the motion choice is remembered after a reload', await js(`document.documentElement.dataset.motion === 'full'`));
+  await page('Emulation.setEmulatedMedia', {features:[]});
+  await js(`localStorage.removeItem('astravital-motion'); true`);
   for (const [width, height] of [[768, 1024], [390, 844]]) {
     await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: true});
     await page('Page.reload');
     await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'glasses page at ' + width);
     check(`Glasses page fits a ${width} px viewport`, await js(`window.innerWidth === ${width} &&
       document.documentElement.scrollWidth <= window.innerWidth + 1`), await js(`document.documentElement.scrollWidth + ' px wide'`));
+    await checkReadable(`Glasses page (${width} px)`);
+    check(`Glasses page (${width} px): a Start experience button is on the first screen`, await js(`(() => { const b = document.getElementById('hero-start'); const r = b.getBoundingClientRect(); return b.getClientRects().length > 0 && r.bottom < window.innerHeight; })()`));
+    await snap(`glasses-${width}`);
   }
 } finally {
   socket?.close(); browser?.kill(); server?.close();
