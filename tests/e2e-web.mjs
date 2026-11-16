@@ -407,18 +407,19 @@ try {
   const offlineOk = await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO') && (document.querySelector('#crew-overview h2')?.textContent ?? '').includes('Alex Morgan')`), 'offline reload', 20000).then(() => true, () => false);
   await page('Network.emulateNetworkConditions', {offline:false, latency:0, downloadThroughput:-1, uploadThroughput:-1});
   check('after the first visit the demo reloads and runs with no internet', offlineOk);
-  // Motion preference: follows the system "reduce motion" setting, can be switched by the person and is remembered.
+  // Motion: full by default, even when the system asks to reduce motion; the person can reduce it and the choice is remembered.
   await js(`localStorage.removeItem('astravital-motion'); true`);
   await page('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]});
   await page('Page.reload');
-  await untilPage(() => js(`document.documentElement.dataset.motion === 'reduced' && document.getElementById('motion-toggle')?.textContent.includes('system setting')`), 'reduced motion from the system');
-  check('with “reduce motion” on in the system, animations are simplified and the toggle says so', await js(`getComputedStyle(document.querySelector('.optics')).animationName === 'none'`));
+  await untilPage(() => js(`document.documentElement.dataset.motion === 'full' && document.getElementById('motion-toggle')?.textContent === 'Full motion: on' && document.getElementById('motion-toggle').title.startsWith('Animations are on')`), 'full motion by default (switch ready)');
+  check('full motion is on by default, even if the system asks to reduce motion', await js(`getComputedStyle(document.querySelector('.optics')).animationName.includes('optics-sway')`));
   await js(`document.getElementById('motion-toggle').click(); true`);
-  check('the person can turn full motion on, and the lens moves', await js(`document.documentElement.dataset.motion === 'full' &&
-    getComputedStyle(document.querySelector('.optics')).animationName.includes('optics-sway') && document.getElementById('motion-toggle').textContent === 'Full motion: on' && document.getElementById('motion-toggle').getAttribute('aria-checked') === 'true'`));
+  check('the person can switch motion off, and the animations stop', await js(`document.documentElement.dataset.motion === 'reduced' &&
+    getComputedStyle(document.querySelector('.optics')).animationName === 'none' && document.getElementById('motion-toggle').textContent === 'Full motion: off' &&
+    document.getElementById('motion-toggle').getAttribute('aria-checked') === 'false'`));
   await page('Page.reload');
   await untilPage(() => js(`document.getElementById('api-status')?.textContent.includes('WEB DEMO')`), 'page after the motion choice');
-  check('the motion choice is remembered after a reload', await js(`document.documentElement.dataset.motion === 'full'`));
+  check('the motion choice is remembered after a reload', await js(`document.documentElement.dataset.motion === 'reduced'`));
   await page('Emulation.setEmulatedMedia', {features:[]});
   await js(`localStorage.removeItem('astravital-motion'); true`);
   for (const [width, height] of [[768, 1024], [390, 844]]) {

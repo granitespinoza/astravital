@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#030405"><script>(function(){var m='full',src='system';try{var s=localStorage.getItem('astravital-motion');if(s==='full'||s==='reduced'){m=s;src='you';}else if(matchMedia('(prefers-reduced-motion: reduce)').matches)m='reduced';}catch(e){}document.documentElement.dataset.motion=m;document.documentElement.dataset.source=src;})();</script>
+  <meta name="theme-color" content="#030405"><script>(function(){var m='full';try{if(localStorage.getItem('astravital-motion')==='reduced')m='reduced';}catch(e){}document.documentElement.dataset.motion=m;})();</script>
   <title>ASTRAVITAL · Mission console</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./experience.css?v=28">

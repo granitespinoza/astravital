@@ -2,7 +2,7 @@
 import {browserMessages,messageContext,MESSAGE_KEY,roleNames} from './case-messages.js';
 import {createCaseThread} from './case-thread.js';
 import {scrollBehavior} from './motion.js';
-import {createScene} from './view3d.bundle.js?v=15';
+import {createScene} from './view3d.bundle.js?v=16';
 const $=id=>document.getElementById(id);
 const remember=id=>{try{localStorage.setItem('astra-session',id);}catch{}};
 let sessionId=(()=>{try{return localStorage.getItem('astra-session')??crypto.randomUUID();}catch{return crypto.randomUUID();}})();remember(sessionId);
