@@ -143,6 +143,27 @@ try {
     check(`${where}: no text smaller than 12 px`, audit.small.length === 0, audit.small.slice(0, 4).join(' | ') || `${audit.n} text blocks`);
     check(`${where}: text meets WCAG AA contrast (4.5:1)`, audit.low.length === 0, audit.low.slice(0, 4).join(' | ') || `${audit.n} text blocks`);
   };
+  // Overlap audit: no visible text inside the lens may sit on top of other text (measured on the real text lines).
+  const textOverlaps = scope => js(`(() => {
+    const root = document.querySelector(${JSON.stringify(scope)});
+    const shown = el => { for (let n = el; n && n !== document.body; n = n.parentElement) { const st = getComputedStyle(n); if (st.display === 'none' || st.visibility === 'hidden' || parseFloat(st.opacity) === 0) return false; } return true; };
+    const items = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let t; (t = walker.nextNode());) {
+      const text = t.textContent.trim(); if (!text) continue;
+      const el = t.parentElement; if (!el || el.closest('script,style,[aria-hidden=true],.sr-only') || !shown(el)) continue;
+      const range = document.createRange(); range.selectNodeContents(t);
+      for (const r of range.getClientRects()) if (r.width > 2 && r.height > 2) items.push({el, r, text: text.slice(0, 26)});
+    }
+    const hits = [];
+    for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+      const a = items[i], b = items[j];
+      if (a.el === b.el || a.el.contains(b.el) || b.el.contains(a.el)) continue;
+      const w = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left), h = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+      if (w > 3 && h > 3) hits.push('"' + a.text + '" x "' + b.text + '"');
+    }
+    return hits;
+  })()`);
   // Optional screenshots for design review: SHOT_DIR=/some/folder node tests/e2e-web.mjs
   const snap = async name => {
     if (!process.env.SHOT_DIR) return;
@@ -221,6 +242,12 @@ try {
   await untilPage(() => js(`document.querySelector('#crew-conversation .case-message-list').textContent.includes('Message from crew E2E')`), 'crew message saved');
   check('crew message states local-only storage', await js(`document.querySelector('#crew-conversation .case-status').textContent === 'Saved locally · Not delivered'`));
 
+  // Like a person: the Body context switch only appears after entering the lens.
+  if (await js(`document.querySelector('.visual').dataset.intro === 'ready'`)) {
+    await js(`document.getElementById('enter-lenses').click(); true`);
+    await untilPage(() => js(`document.querySelector('.visual').dataset.intro === 'done'`), 'lens entered before Body context', 15000);
+    await delay(1200);
+  }
   await js(`document.getElementById('show-body').click(); true`);
   check('body context view opens', await js(`document.getElementById('show-body').getAttribute('aria-pressed') === 'true'`));
   await untilPage(() => js(`(() => { const img = document.querySelector('#body-art .anatomy-body'); return Boolean(img?.complete && img.naturalWidth); })()`), 'body illustration');
@@ -230,6 +257,22 @@ try {
     document.querySelector('#body-art .anatomy-marker[data-zone=heart]').dataset.level === document.getElementById('hud-heart').dataset.level &&
     document.querySelector('#body-art .anatomy-marker[data-zone=bone]').dataset.level === document.getElementById('hud-bone').dataset.level &&
     document.getElementById('hud-heart').dataset.level !== 'unknown'`));
+  const bodyOverlaps = await textOverlaps('.visual');
+  check('Body context: no text overlaps other text', bodyOverlaps.length === 0, bodyOverlaps.slice(0, 4).join(' | '));
+  await snap('body-desktop');
+  // The same audit at common desktop and laptop widths, in both lens views.
+  for (const [width, height] of [[1920, 1080], [1536, 864], [1366, 768], [1280, 720], [1100, 800], [1024, 768]]) {
+    await page('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false});
+    for (const [view, button] of [['Wearer view', 'show-focus'], ['Body context', 'show-body']]) {
+      await js(`document.getElementById('${button}').click(); true`);
+      await delay(500);
+      const overlaps = await textOverlaps('.visual');
+      check(`${view} at ${width} px: no text overlaps other text`, overlaps.length === 0, overlaps.slice(0, 4).join(' | '));
+      if (view === 'Body context') await snap(`body-${width}`);
+    }
+  }
+  await page('Emulation.setDeviceMetricsOverride', {width: 1440, height: 900, deviceScaleFactor: 1, mobile: false});
+  await js(`document.getElementById('show-body').click(); true`);
   if (process.env.BODY_SCREENSHOT_PATH) {
     await js(`document.fonts.ready.then(() => true)`);
     await delay(1200);

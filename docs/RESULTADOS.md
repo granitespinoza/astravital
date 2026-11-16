@@ -215,3 +215,7 @@ AI assistance: Anthropic Claude. Scope: the desktop experience first; phones and
 **Checks (macOS, Node 22.23.2).** `node --test`: 75 tests, 73 passed, 0 failed, 2 opt-in voice skips. `node tests/e2e-web.mjs`: 84/84, and 85/85 with the clock set to 2026-12-03 and 2027-01-26. `node tests/e2e-local.mjs`: 17/17.
 
 **Limits.** Safari and Firefox were not tested. Voice with a real microphone was not tested (the test uses a stand-in recogniser). The 3D motion is verified by hand in a real WebGL pane, not by the automatic tests, because headless Chrome in CI has no GPU. Phone and tablet layouts were not visually polished.
+
+### Body context overlap fix — 2026-11-15
+
+Found by a reviewer on the published site: in **Body context** some texts sat on top of others. Cause: the two-column layout I gave the status chips in the wearer view also applied to this view, which stacks them in a narrow column; the view label crossed the lens frame and the Astra card sat on the frame's lower edge. Fixed (chips stacked again, label and card inside the frame with margin, anatomy sized to leave room, the "3D is unavailable" notice moved to free space). New automatic check: the real text lines inside the lens must not overlap other text, in the wearer view and in Body context at 1920, 1536, 1366, 1280, 1100 and 1024 px (it first failed on the broken layout and on the intro-state shortcut of an earlier test). Phones and tablets below 1024 px were not checked for this.
