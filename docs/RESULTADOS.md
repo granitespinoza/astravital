@@ -192,3 +192,26 @@ A manual walkthrough of the published demo found that *"Can you diagnose me?"* a
 ### Durability of the public demo until results — 2026-11-15
 
 Judging runs until 26 January 2027, so the published demo must keep working without changes. `E2E_DATE=<date> node tests/e2e-web.mjs` runs every page with the browser clock shifted (and checks that the shift took effect). All 34 web demo checks, plus the clock check, passed with the clock at 2026-12-03, 2026-12-17, 2027-01-26 and 2027-03-31 (35/35 each): the web demo uses precomputed seed-142 states and never marks them stale. The post-deploy job now repeats the live-site run with the clock at 2027-01-26. A **Reset demo** control returns a revisiting browser to the first state, and the Earth doctor link no longer depends on `URLSearchParams.size`, which Safari 16 lacks. Browsers other than Chromium were not tested automatically.
+
+## Final UX pass (Nielsen's heuristics) — 2026-11-15
+
+AI assistance: Anthropic Claude. Scope: the desktop experience first; phones and tablets are covered only by automatic checks (no horizontal overflow, text size, contrast), not by visual polish.
+
+| Heuristic | What changed |
+| --- | --- |
+| Visibility of system status | Header and hero say what ASTRAVITAL is; the lens shows the voice state ("Say OK Astra", listening, a doctor reply arrived); each reply shows the question it answers; status colour plus icon plus text everywhere. |
+| Match with the real world | Plain-language hero with the three roles (Astra in the glasses, the onboard medical officer, the Earth doctor); Astra greets the astronaut by name. |
+| User control and freedom | A **Full motion** switch (it starts from the system "reduce motion" setting and remembers the person's choice), Skip transition, Replay intro, Reset demo, Cancel before saving. Scripted scrolling follows the same preference. |
+| Consistency | One wording for "Confirmed ALERT", one time format (UTC), one status vocabulary on the glasses, CMO and Earth doctor pages. |
+| Error prevention and recovery | Separate confirmation before saving or sending; empty Send explains what to type; microphone errors say what to do. |
+| Recognition rather than recall | **How to try it (30 s)** guide, suggested questions, a hint in the lens, a primary action that changes with the case ("Check again", "Prepare review", "Message your medical team"). |
+| Aesthetic and minimalist design | Evidence and history moved below the decision; patient card first on the doctor page; the lens frame is a light-cyan glass that holds the HUD with margin on every side. |
+| Readability | 79 font-size declarations raised to at least 12 px and five low-contrast colours lightened; the automatic audit now fails if any visible text is under 12 px or below WCAG AA contrast (4.5:1, measured against solid backgrounds, so an approximation and not a certification). |
+
+**Motion.** The wearer-view lens drifts sideways and a glint crosses the glass; in the intro the 3D glasses swing about ±30° (a real WebGL browser pane showed three clearly different angles across a few seconds) and the entry into the lens lasts 3.8 s (it was 2.4 s). Under "reduce motion" the entry becomes a 1.6 s fade and the idle movement stops; the switch lets a person who has that system setting turn full motion on. An automatic test samples the lens position twice and requires it to change.
+
+**Independent review.** Two read-only Claude agents reviewed the change in parallel, one critiquing screenshots of both pages at three widths and one reviewing the diff. Their 16 findings were checked one by one: all were real and were fixed (reduced-motion pose of the glasses, a sway jump at the start, smooth scrolling ignoring the motion setting, switch semantics, header and hero density, lens content too close to the frame, wide form fields, the doctor's reply button on narrow screens, touch-target sizes) except one, kept on purpose: the large burned-in "AI-generated image" watermark and the smaller caption that also names the tool, because the Space Apps rules require a visible watermark.
+
+**Checks (macOS, Node 22.23.2).** `node --test`: 75 tests, 73 passed, 0 failed, 2 opt-in voice skips. `node tests/e2e-web.mjs`: 84/84, and 85/85 with the clock set to 2026-12-03 and 2027-01-26. `node tests/e2e-local.mjs`: 17/17.
+
+**Limits.** Safari and Firefox were not tested. Voice with a real microphone was not tested (the test uses a stand-in recogniser). The 3D motion is verified by hand in a real WebGL pane, not by the automatic tests, because headless Chrome in CI has no GPU. Phone and tablet layouts were not visually polished.

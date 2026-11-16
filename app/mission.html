@@ -4,19 +4,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#030405">
+  <meta name="theme-color" content="#030405"><script>(function(){var m='full',src='system';try{var s=localStorage.getItem('astravital-motion');if(s==='full'||s==='reduced'){m=s;src='you';}else if(matchMedia('(prefers-reduced-motion: reduce)').matches)m='reduced';}catch(e){}document.documentElement.dataset.motion=m;document.documentElement.dataset.source=src;})();</script>
   <title>ASTRAVITAL · Mission console</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./experience.css?v=22">
-  <link rel="stylesheet" href="./mission.css?v=19">
-  <link rel="stylesheet" href="./case-thread.css?v=3">
-  <script type="module" src="./mission.js?v=19"></script>
+  <link rel="stylesheet" href="./experience.css?v=28">
+  <link rel="stylesheet" href="./mission.css?v=21">
+  <link rel="stylesheet" href="./case-thread.css?v=5">
+  <script type="module" src="./mission.js?v=21"></script>
 </head>
 <body>
   <header class="mission-header">
     <span class="brand"><span>✦</span> ASTRAVITAL</span>
     <span class="eyebrow mission-simulated">SIMULATED DATA — not a medical device</span>
-    <a id="glasses-link" href="./" hidden>Glasses experience ↗</a>
+    <button type="button" class="motion-toggle" id="motion-toggle" role="switch" aria-checked="true" aria-label="Full motion">Full motion: on</button><a id="glasses-link" href="./" hidden>Glasses experience ↗</a>
   </header>
   <main class="mission">
     <p class="eyebrow" id="level">MISSION CONSOLE</p>
@@ -147,5 +147,6 @@
     </section>
     <p id="action-result" role="status" class="mission-feedback"></p>
   </main>
+  <script type="module">import {initMotionToggle} from './motion.js';initMotionToggle(document.getElementById('motion-toggle'));</script>
 </body>
 </html>

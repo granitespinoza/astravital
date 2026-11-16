@@ -5,6 +5,7 @@ import {heartThreshold} from './ground-model.js';
 import {dailySeries, forecast, watchRisk} from './forecast.js';
 import {healthStatus, healthStatusText, repeatOutcome} from './health-status.js';
 import {messageContext} from './case-messages.js';
+import {scrollBehavior} from './motion.js';
 
 const byId = id => document.getElementById(id);
 const settings = policy();
@@ -279,7 +280,7 @@ export function createGroundView({perform, prepareRequestId,onCase = () => {}}) 
         ? `Resting heart rate ${member.reading?.value ?? '—'} bpm · z ${number(member.decision.z,2)} against a personal reference of ${number(member.decision.baseline?.mean,1)} bpm${member.repeated ? ' · persisted on repeat' : ''}`
         : `Left hip bone density · ${boneLabel(states.bone,member.bone)}`,'patient-problem');
       const reply=node('button','Reply to astronaut ↓','reply-cta');reply.type='button';
-      reply.onclick=()=>{const host=byId('ground-conversation');host.scrollIntoView({behavior:'smooth',block:'start'});const to=host.querySelector('select');if(to&&[...to.options].some(o=>o.value==='crew')){to.value='crew';to.dispatchEvent(new Event('change',{bubbles:true}));}setTimeout(()=>host.querySelector('textarea')?.focus({preventScroll:true}),450);};
+      reply.onclick=()=>{const host=byId('ground-conversation');host.scrollIntoView({behavior:scrollBehavior(),block:'start'});const to=host.querySelector('select');if(to&&[...to.options].some(o=>o.value==='crew')){to.value='crew';to.dispatchEvent(new Event('change',{bubbles:true}));}setTimeout(()=>host.querySelector('textarea')?.focus({preventScroll:true}),450);};
       const cta=node('div','','patient-cta');cta.append(reply,node('p','Your reply reaches the astronaut’s glasses as a notification, and Astra reads it aloud.','mission-hint'));
       const identity=node('div','','case-identity');
       const who=node('div');who.append(node('p','PATIENT CARD · SIMULATED DATA','eyebrow'),node('h2',member.name+' · '+member.crewId));

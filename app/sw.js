@@ -1,12 +1,12 @@
 // AI assistance: OpenAI Codex. See docs/SI-USAGE.md.
 // Update the cache version when releasing a changed app shell.
-const cacheName = 'astravital-dashboard-v28';
+const cacheName = 'astravital-dashboard-v34';
 const prefix = 'astravital-dashboard-';
 const files = [
-  './', './index.html', './legacy.html', './experience.css?v=22', './experience.js?v=24', './view3d.bundle.js?v=13', './web-demo.bundle.js?v=16', './mission.html', './mission.js', './mission.css', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
-  './case-messages.js', './case-thread.js', './case-thread.css?v=3',
+  './', './index.html', './legacy.html', './experience.css?v=28', './experience.js?v=26', './view3d.bundle.js?v=15', './web-demo.bundle.js?v=16', './mission.html', './mission.js', './mission.css', './review.html', './visor.css', './visor.js', './workflow.js', './hud-model.js', './styles.css', './dashboard.js', './engine.js',
+  './case-messages.js', './motion.js', './case-thread.js', './case-thread.css?v=5',
   './scenarios.js', './storage.js', './chart.js', './explorer.js', './health-status.js',
-  './mission.js?v=19', './mission.css?v=19', './ground-view.js?v=19', './ground-model.js', './forecast.js',
+  './mission.js?v=21', './mission.css?v=21', './ground-view.js?v=20', './ground-model.js', './forecast.js',
   './mission-demo.js?v=15', './mission-demo.json',
   './anatomy-body.webp', './anatomy-heart.webp', './anatomy-left-hip.webp',
   './hud-check.wav', './hud-followup.wav', './hud-saved.wav', './hud-error.wav', './hud-explain.wav',

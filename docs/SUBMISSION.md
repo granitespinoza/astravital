@@ -40,7 +40,7 @@ https://github.com/granitespinoza/astravital (live web demo, no install: https:/
 
 **What we hope to achieve.** A crew-facing layer that could connect to real wearables such as the CSA Bio-Monitor and to delay-tolerant links to flight surgeons, supporting NASA's direction toward Earth-independent medical operations.
 
-**Tools.** JavaScript (ES modules), Node.js 22, SQLite (`node:sqlite`), Three.js, esbuild, HTML, CSS, the Web Audio API, a service worker for offline use, whisper.cpp (local speech recognition) and Kokoro (local neural voice). 71 automated tests plus end-to-end browser checks of the web demo, the live site and the full local app.
+**Tools.** JavaScript (ES modules), Node.js 22, SQLite (`node:sqlite`), Three.js, esbuild, HTML, CSS, the Web Audio API, a service worker for offline use, whisper.cpp (local speech recognition) and Kokoro (local neural voice). 75 automated tests plus end-to-end browser checks of the web demo, the live site and the full local app.
 
 ## Use of Super Intelligence (SI)
 
